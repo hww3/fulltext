@@ -17,10 +17,10 @@ class Index
 {
 
 string indexloc;
-object writer;
-object reader;
-object analyzer;
-object searcher;
+mapping writers = ([]);
+mapping readers = ([]);
+mapping analyzers = ([]);
+mapping searchers = ([]);
 
 static void create(string loc)
 {
@@ -35,34 +35,39 @@ static void create(string loc)
 
   if(!sw) sw = Java.JArray(stopwords);
 
-   analyzer = Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw);
-
-
 }
 
-object get_writer()
+object get_writer(string index)
 {
-  if(!writer)
-    writer=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
-      Java.JString(indexloc),
+  if(!writers[index])
+    writers[index]=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
+      Java.JString(make_indexloc(index)),
       Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw), 0);
-  return writer;
+  return writers[index];
 }
 
-object get_reader()
+object get_analyzer(string index)
 {
-  if(!reader)
-   reader = Java.pkg["org/apache/lucene/index/IndexReader"]->_method("open", 
-                        "(Ljava/lang/String;)Lorg/apache/lucene/index/IndexReader;")(indexloc);
-  return reader;
+  if(!analyzers[index])
+    analyzers[index]= Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw);
+
+  return analyzers[index];
 }
 
-object get_searcher()
+object get_reader(string index)
+{
+  if(!readers[index])
+   readers[index] = Java.pkg["org/apache/lucene/index/IndexReader"]->_method("open", 
+                        "(Ljava/lang/String;)Lorg/apache/lucene/index/IndexReader;")(make_indexloc(index));
+  return readers[index];
+}
+
+object get_searcher(string index)
 {
 
-   if(!searcher)
-     searcher = Java.pkg["org/apache/lucene/search/IndexSearcher"]->_constructor("(Lorg/apache/lucene/index/IndexReader;)V")(get_reader());
-   return searcher;
+   if(!searchers[index])
+     searchers[index] = Java.pkg["org/apache/lucene/search/IndexSearcher"]->_constructor("(Lorg/apache/lucene/index/IndexReader;)V")(get_reader(index));
+   return searchers[index];
 }
 
 //! converts a unix timestamp integer or Calendar object
@@ -99,12 +104,37 @@ array stopwords=({"me", "my", "this", "the", "a", "an", "those", "pike",
 
 object sw;
 
+static string make_indexloc(string index, int|void force)
+{
+  string loc;
+
+  index = replace(index, "/", "_");
+
+  loc = Stdio.append_path(indexloc, index);
+
+  if(!file_stat(loc)) // the requested index directory doesn't exist.
+  {
+
+    if(!force)
+    {
+      throw(Error.Generic("index " + index + " does not exist.\n"));
+    }
+
+    else // we're forcing the creation.
+    {
+       mkdir(loc);
+    }
+  }
+
+  return loc;
+}
+
 object Document()
 {
   return Java.pkg["org/apache/lucene/document/Document"]();
 }
 
-object doSearch(string query, string field, string|void sort, int|void rev)
+object doSearch(string index, string query, string field, string|void sort, int|void rev)
 {
 
   object sorter;
@@ -115,18 +145,18 @@ object doSearch(string query, string field, string|void sort, int|void rev)
     sorter = Java.pkg["org/apache/lucene/search/Sort"]();
 
   object q = Java.pkg["org/apache/lucene/queryParser/QueryParser"]
-                         ->parse(query, field, analyzer);
+                         ->parse(query, field, get_analyzer(index));
 
-  object results = get_searcher()->_method("search",
+  object results = get_searcher(index)->_method("search",
     "(Lorg/apache/lucene/search/Query;Lorg/apache/lucene/search/Sort;)Lorg/apache/lucene/search/Hits;")(q, sorter);
 
   return results;
 }
 
-array search(string query, string field, int|void max, int|void start)
+array search(string index, string query, string field, int|void max, int|void start)
 {
   array retval = ({});
-  object results = doSearch(query, field);
+  object results = doSearch(index, query, field);
   if(!max) max=25;
 
   for(int i = start; (i < (int)results->length()) && (i < (start+max)); i++)
@@ -149,26 +179,30 @@ array search(string query, string field, int|void max, int|void start)
 
 }
 
-int delete_by_handle(string handle)
+int delete_by_handle(string index, string handle)
 {
   object term = Java.pkg["org/apache/lucene/index/Term"]("handle", handle);
 
-  get_reader()->delete(term);
+  return get_reader(index)->delete(term);
 
 }
 
-int delete_by_uuid(string uuid)
+int delete_by_uuid(string index, string uuid)
 {
   object term = Java.pkg["org/apache/lucene/index/Term"]("uuid", uuid);
 
-  get_reader()->delete(term);
+  return get_reader(index)->delete(term);
 
 }
 
-void new()
+void new(string index)
 {
+  if(!catch(make_indexloc(index)))
+  {
+    throw(Error.Generic("Index " + index + " already exists.\n"));
+  }
   object xwriter=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
-      Java.JString(indexloc),
+      Java.JString(make_indexloc(index, 1)),
       Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw), 1);
   xwriter->close();
 
@@ -181,14 +215,15 @@ void new()
 //!
 //! @returns
 //!  a string containing the uuid of the document in the index.
-string add(mapping doc)
+string add(string index, mapping doc)
 {
  string id = Standards.UUID.new_string();
  object d;
 
   d=Document();
 
- object uuid=Java.pkg["org/apache/lucene/document/Field"]->_method("Text",
+ object 
+uuid=Java.pkg["org/apache/lucene/document/Field"]->_method("Keyword",
 "(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("uuid"),
    Java.JString(id));
 
@@ -196,11 +231,11 @@ string add(mapping doc)
 "(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("title"),
    Java.JString(doc->title));
 
- object handle=Java.pkg["org/apache/lucene/document/Field"]->_method("Text",
+ object handle=Java.pkg["org/apache/lucene/document/Field"]->_method("Keyword",
 "(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("handle"),
    Java.JString(doc->handle));
 
- object contents =Java.pkg["org/apache/lucene/document/Field"]->_method("UnStored",
+ object contents =Java.pkg["org/apache/lucene/document/Field"]->_method("Text",
 "(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("contents"),
    Java.JString(doc->contents));
 
@@ -216,21 +251,21 @@ Java.pkg["org/apache/lucene/document/DateField"]->dateToString(ddate));
  d->add(handle);
  d->add(contents);
 
-  get_writer()->addDocument(d);
+  get_writer(index)->addDocument(d);
 
   if(i>optimize_threshold)
   {
-    get_writer()->optimize();
+    get_writer(index)->optimize();
     i = 0;
   }
   else i++;
 
-  get_writer()->close();
-  if(searcher)
-    destruct(searcher);
-  if(reader)
-    destruct(reader);
-  writer = 0;
+  get_writer(index)->close();
+  if(get_searcher(index))
+    destruct(get_searcher(index));
+  if(get_reader(index))
+    destruct(get_reader(index));
+  destruct(get_writer(index));
   d=0; title=0; contents=0; uuid=0; date=0;
 
   return id;
@@ -238,10 +273,10 @@ Java.pkg["org/apache/lucene/document/DateField"]->dateToString(ddate));
 
 static void destroy()
 {
-  if(reader)
+  foreach(readers;; object reader)
     reader->close();
 
-  if(writer)
+  foreach(writers;; object writer)
     writer->close();
 }
 

@@ -3,9 +3,13 @@ import Tools.Logging;
 
 inherit XMLRPCController;
 
-string search(object id, string query, string field, int start, int max)
-{
-  Log.info("Got search query " + query);
+#define CHECKINDEX() if(!index || index=="0") throw(Error.Generic("index not specified!\n"))
 
-  return app->index->search(query, field, start, max);
+string search(object id, string index, string query, string field, int start, int max)
+{
+  CHECKINDEX();
+
+  Log.info("Got search query '" + query + "' for " + index);
+
+  return app->index->search(index, query, field, start, max);
 }
