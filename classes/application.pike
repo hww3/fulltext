@@ -35,7 +35,7 @@ static void create(string loc)
 
   if(!sw) sw = Java.JArray(stopwords);
 
-   analyzer = Java.pkg["org/apache/lucene/analysis/StopAnalyzer"]();
+   analyzer = Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw);
 
 
 }
