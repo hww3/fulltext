@@ -8,10 +8,22 @@ object index;
 void start()
 {
   // if we don't have a FT index, we should create it.
+
+  signal(signum("SIGINT"), shutdown_app);
+  signal(signum("SIGQUIT"), shutdown_app);
+  signal(signum("SIGKILL"), shutdown_app);
+  signal(signum("SIGABRT"), shutdown_app);
+
   index = Index(getcwd() + "/ft");
 }
 
 
+void shutdown_app()
+{
+  Log.critical("Shutting down indexer...\n");
+  destruct(index);
+  exit(0);
+}
 
 class Index
 {
@@ -37,12 +49,44 @@ static void create(string loc)
 
 }
 
+void kill_searcher(string index)
+{
+  if(searchers[index])
+  {   
+    destruct(searchers[index]);
+    m_delete(searchers, index);
+  }
+}
+
+void kill_writer(string index)
+{
+  if(writers[index])
+  {
+    writers[index]->close();
+    destruct(writers[index]);
+    m_delete(writers, index);
+  }
+}
+
+void kill_reader(string index)
+{
+  if(readers[index])
+  {
+    readers[index]->close();
+    destruct(readers[index]);
+    m_delete(readers, index);
+  }
+}
+
 object get_writer(string index)
 {
   if(!writers[index])
+  {
+    Log.info("Creating new writer object for " + index + ".");
     writers[index]=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
       Java.JString(make_indexloc(index)),
       Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw), 0);
+  }
   return writers[index];
 }
 
@@ -57,8 +101,12 @@ object get_analyzer(string index)
 object get_reader(string index)
 {
   if(!readers[index])
+  {
+    Log.info("Creating new reader object for " + index + ".");
+
    readers[index] = Java.pkg["org/apache/lucene/index/IndexReader"]->_method("open", 
                         "(Ljava/lang/String;)Lorg/apache/lucene/index/IndexReader;")(make_indexloc(index));
+  }
   return readers[index];
 }
 
@@ -170,6 +218,7 @@ array search(string index, string query, string field, int|void max, int|void st
                      "uuid": (string)document->get("uuid"),
                      "title": (string)document->get("title"),
                      "handle" : (string)document->get("handle"),
+                     "excerpt" : (string)document->get("excerpt"),
                      "date": date 
                    ]) 
                 });
@@ -201,6 +250,7 @@ void new(string index)
   {
     throw(Error.Generic("Index " + index + " already exists.\n"));
   }
+  Log.info("Creating new index " + index + ".");
   object xwriter=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
       Java.JString(make_indexloc(index, 1)),
       Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw), 1);
@@ -236,8 +286,13 @@ uuid=Java.pkg["org/apache/lucene/document/Field"]->_method("Keyword",
    Java.JString(doc->handle));
 
  object contents =Java.pkg["org/apache/lucene/document/Field"]->_method("Text",
-"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("contents"),
-   Java.JString(doc->contents));
+"(Ljava/lang/String;Ljava/io/Reader;)Lorg/apache/lucene/document/Field;")(Java.JString("contents"),
+  Java.pkg["java/io/StringReader"](Java.JString(doc->contents))
+  );
+
+ object excerpt = Java.pkg["org/apache/lucene/document/Field"]->_method("UnIndexed",
+"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("excerpt"),
+   Java.JString(doc->excerpt || ""));
 
 object ddate=JDate(doc->date);
 
@@ -249,6 +304,7 @@ Java.pkg["org/apache/lucene/document/DateField"]->dateToString(ddate));
  d->add(uuid);
  d->add(title);
  d->add(handle);
+ d->add(excerpt);
  d->add(contents);
 
   get_writer(index)->addDocument(d);
@@ -260,12 +316,11 @@ Java.pkg["org/apache/lucene/document/DateField"]->dateToString(ddate));
   }
   else i++;
 
-  get_writer(index)->close();
-  if(get_searcher(index))
-    destruct(get_searcher(index));
-  if(get_reader(index))
-    destruct(get_reader(index));
-  destruct(get_writer(index));
+  
+  kill_writer(index);
+  kill_reader(index);
+  kill_searcher(index);
+
   d=0; title=0; contents=0; uuid=0; date=0;
 
   return id;
@@ -273,6 +328,9 @@ Java.pkg["org/apache/lucene/document/DateField"]->dateToString(ddate));
 
 static void destroy()
 {
+  foreach(searchers;; object searcher)
+    searcher->close();
+
   foreach(readers;; object reader)
     reader->close();
 

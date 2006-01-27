@@ -5,15 +5,16 @@ import Tools.Logging;
 
 inherit XMLRPCController;
 
-string add(object id, string index, string title, int date, string contents, string handle)
+string add(object id, string index, string title, int date, string contents, string handle, string|void excerpt)
 {
   CHECKINDEX();
 
   string uuid;
   object dob = Calendar.Gregorian.Second(date);
-  Log.info("Adding %s (date %O) to index.", title, dob);
+  Log.info("Adding %s (date %O) to index %s", title, dob, index);
   uuid = app->index->add(index, (["title": title, "date": dob, 
                            "contents": contents,
+                           "excerpt": excerpt,
                            "handle": handle]));
 
   return uuid;
