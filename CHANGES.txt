@@ -1,0 +1,3 @@
+- Added ability to create multiple indices per server instance.
+- Index stability seems to be better, though Lucene apparently is
+  touchy about how the index is modified.
