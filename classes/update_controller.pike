@@ -1,6 +1,8 @@
 import Fins;
 import Tools.Logging;
 
+constant __uses_session = 0;
+
 #define CHECKINDEX() if(!index || index=="0") throw(Error.Generic("index not specified!\n"))
 
 inherit XMLRPCController;
