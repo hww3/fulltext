@@ -36,7 +36,6 @@ mapping searchers = ([]);
 
 static void create(string loc)
 {
-
   Stdio.Stat f = file_stat(loc);
   if(!f || !f->isdir)
   {
@@ -44,25 +43,12 @@ static void create(string loc)
     throw(Error.Generic("FullText directory " + loc + " does not exist, or is a plain file.\n"));
   }
   indexloc = loc;
-
-  if(!sw) sw = Java.JArray(stopwords);
-
-}
-
-void kill_searcher(string index)
-{
-  if(searchers[index])
-  {   
-    destruct(searchers[index]);
-    m_delete(searchers, index);
-  }
 }
 
 void kill_writer(string index)
 {
   if(writers[index])
   {
-    writers[index]->close();
     destruct(writers[index]);
     m_delete(writers, index);
   }
@@ -72,7 +58,6 @@ void kill_reader(string index)
 {
   if(readers[index])
   {
-    readers[index]->close();
     destruct(readers[index]);
     m_delete(readers, index);
   }
@@ -83,9 +68,7 @@ object get_writer(string index)
   if(!writers[index])
   {
     Log.info("Creating new writer object for " + index + ".");
-    writers[index]=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
-      Java.JString(make_indexloc(index)),
-      Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw), 0);
+    writers[index]=Public.Xapian.WriteableDatabase(make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
   }
   return writers[index];
 }
@@ -93,7 +76,7 @@ object get_writer(string index)
 object get_analyzer(string index)
 {
   if(!analyzers[index])
-    analyzers[index]= Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw);
+    analyzers[index]= analyzer(stopwords);
 
   return analyzers[index];
 }
@@ -103,44 +86,9 @@ object get_reader(string index)
   if(!readers[index])
   {
     Log.info("Creating new reader object for " + index + ".");
-
-   readers[index] = Java.pkg["org/apache/lucene/index/IndexReader"]->_method("open", 
-                        "(Ljava/lang/String;)Lorg/apache/lucene/index/IndexReader;")(make_indexloc(index));
+    readers[index] = Public.Xapian.Database(make_indexloc(index));
   }
   return readers[index];
-}
-
-object get_searcher(string index)
-{
-
-   if(!searchers[index])
-     searchers[index] = Java.pkg["org/apache/lucene/search/IndexSearcher"]->_constructor("(Lorg/apache/lucene/index/IndexReader;)V")(get_reader(index));
-   return searchers[index];
-}
-
-//! converts a unix timestamp integer or Calendar object
-//! into a Java Date object.
-object JDate(int|object t)
-{
-  object x;
-  if(intp(t))
-  {
-    x=Calendar.Second(t);
-  }
-  else x=t;
-
-  object c=Java.pkg["java/util/Calendar"]->getInstance();
-
-  c->set(
-    x->year_no(),
-    x->month_no()-1,
-    x->month_day(),
-    x->hour_no(),
-    x->minute_no(),
-    x->second_no()
-  );
-
-  return c->getTime();
 }
 
 int i = 0;
@@ -150,7 +98,8 @@ array stopwords=({"me", "my", "this", "the", "a", "an", "those", "pike",
  "and", "their", "mine", "to", "is", "it", "of", "in", "for", "are", "not"
  "if", "any", "re", "i", "but", "could"});
 
-object sw;
+object stopper = Public.Xapian.SimpleStopper(stopwords);
+object stemmer = Public.Xapian.Stem("english");
 
 static string make_indexloc(string index, int|void force)
 {
@@ -177,71 +126,71 @@ static string make_indexloc(string index, int|void force)
   return loc;
 }
 
-object Document()
+class analyzer(array stopwords)
 {
-  return Java.pkg["org/apache/lucene/document/Document"]();
+
 }
 
-object doSearch(string index, string query, string field, string|void sort, int|void rev)
+object doSearch(string index, string query, int|void start, int|void max)
 {
-
+  Log.debug("doSearch");
   object sorter;
+  if(!max) max = 100;
 
-  if(sort)
-    sorter = Java.pkg["org/apache/lucene/search/Sort"]->_constructor("(Ljava/lang/String;Z)V")(sort, (int)rev);
-  else
-    sorter = Java.pkg["org/apache/lucene/search/Sort"]();
+  object q = Public.Xapian.QueryParser();
 
-  object q = Java.pkg["org/apache/lucene/queryParser/QueryParser"]
-                         ->parse(query, field, get_analyzer(index));
+  q->set_stopper(stopper);
+  q->set_stemmer(stemmer);
 
-  object results = get_searcher(index)->_method("search",
-    "(Lorg/apache/lucene/search/Query;Lorg/apache/lucene/search/Sort;)Lorg/apache/lucene/search/Hits;")(q, sorter);
-
-  return results;
+  object qry = q->parse_query(query, 0);
+  Log.debug("have query");
+  object s = get_reader(index);
+  object e = Public.Xapian.Enquire(s);
+  e->set_query(qry, 0);
+  Log.debug("getting results.");
+  return e->get_mset(start, max, max);
 }
 
 array search(string index, string query, string field, int|void max, int|void start)
 {
+  int i;
   array retval = ({});
-  object results = doSearch(index, query, field);
-  if(!max) max=25;
+Log.debug("search");
+  mixed e;
+  object results;
 
-  for(int i = start; (i < (int)results->length()) && (i < (start+max)); i++)
+if(e = catch( results = doSearch(index, query, start, max)))
+  Log.exception("error while running query", e);
+  Log.debug("%O", results);
+e = catch{
+  for(i = results->begin(); i != results->end(); i->next())
   {
-      object document = results->doc(i);
-      object jdate = Java.pkg["org/apache/lucene/document/DateField"]->stringToDate(document->get("date"));
-      object df = Java.pkg["java/text/SimpleDateFormat"]("yyyy/MM/dd kk:mm");
-      string date = (string)df->_method("format", "(Ljava/util/Date;)Ljava/lang/String;")(jdate);
       retval+= ({ 
-                  ([ "score": (float)(results->score(i)), 
-                     "uuid": (string)document->get("uuid"),
-                     "title": (string)document->get("title"),
-                     "handle" : (string)document->get("handle"),
-                     "excerpt" : (string)document->get("excerpt"),
-                     "date": date 
+                  ([ "score": (float)(i->get_percent()/100.0), 
+                     "uuid": i->get_document()->get_value(0),
+                     "title": i->get_document()->get_value(1),
+                     "handle" : i->get_document()->get_value(2),
+                     "excerpt" : i->get_document()->get_data(),
+                     "date": i->get_document()->get_value(3)
                    ]) 
                 });
-    }
-
+  }
+};
+if(e) Log.exception("an error occured while generating the results", e);
   return retval;
 
 }
 
 int delete_by_handle(string index, string handle)
 {
-  object term = Java.pkg["org/apache/lucene/index/Term"]("handle", handle);
-
-  return get_reader(index)->delete(term);
-
+  get_writer(index)->delete_document(handle);
+  return 1;
 }
 
 int delete_by_uuid(string index, string uuid)
 {
-  object term = Java.pkg["org/apache/lucene/index/Term"]("uuid", uuid);
-
-  return get_reader(index)->delete(term);
-
+  get_writer(index)->delete_document(uuid);
+  return 1;
 }
 
 void new(string index)
@@ -251,10 +200,7 @@ void new(string index)
     throw(Error.Generic("Index " + index + " already exists.\n"));
   }
   Log.info("Creating new index " + index + ".");
-  object xwriter=Java.pkg["org/apache/lucene/index/IndexWriter"]->_constructor("(Ljava/lang/String;Lorg/apache/lucene/analysis/Analyzer;Z)V")(
-      Java.JString(make_indexloc(index, 1)),
-      Java.pkg["org/apache/lucene/analysis/standard/StandardAnalyzer"](sw), 1);
-  xwriter->close();
+  object xwriter=Public.Xapian.WriteableDatabase(make_indexloc(index, 1), Public.Xapian.DB_CREATE);
 
   xwriter = 0;
 
@@ -270,72 +216,62 @@ string add(string index, mapping doc)
  string id = Standards.UUID.new_string();
  object d;
 
-  d=Document();
+ Log.debug("add");
 
- object 
-uuid=Java.pkg["org/apache/lucene/document/Field"]->_method("Keyword",
-"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("uuid"),
-   Java.JString(id));
+ d=Public.Xapian.Document();
 
- object title=Java.pkg["org/apache/lucene/document/Field"]->_method("Text",
-"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("title"),
-   Java.JString(doc->title));
+ d->set_data(doc->excerpt||"");
 
- object handle=Java.pkg["org/apache/lucene/document/Field"]->_method("Keyword",
-"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("handle"),
-   Java.JString(doc->handle));
+ Log.debug("added data");
 
- object contents =Java.pkg["org/apache/lucene/document/Field"]->_method("Text",
-"(Ljava/lang/String;Ljava/io/Reader;)Lorg/apache/lucene/document/Field;")(Java.JString("contents"),
-  Java.pkg["java/io/StringReader"](Java.JString(doc->contents))
-  );
+ d->add_value(0, id);
+ Log.debug("added value 0");
+ d->add_value(1, doc->title || "");
+ Log.debug("added value 1");
+ d->add_value(2, doc->handle || "");
+ Log.debug("added value 2");
+ d->add_value(3, doc->date->format_smtp());
+ 
+ Log.debug("getting ready to add terms");
 
- object excerpt = Java.pkg["org/apache/lucene/document/Field"]->_method("UnIndexed",
-"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("excerpt"),
-   Java.JString(doc->excerpt || ""));
+ d->add_term(doc->handle || "", 1);
+ d->add_term(id || "", 1);
 
-object ddate=JDate(doc->date);
+ add_contents(d, doc->contents);
 
-object date=Java.pkg["org/apache/lucene/document/Field"]->_method("Keyword",
-"(Ljava/lang/String;Ljava/lang/String;)Lorg/apache/lucene/document/Field;")(Java.JString("date"),
-Java.pkg["org/apache/lucene/document/DateField"]->dateToString(ddate));
+ get_writer(index)->add_document(d);
 
- d->add(date);
- d->add(uuid);
- d->add(title);
- d->add(handle);
- d->add(excerpt);
- d->add(contents);
+ kill_writer(index);
+ kill_reader(index);
 
-  get_writer(index)->addDocument(d);
+ return id;
+}
 
-  if(i>optimize_threshold)
+void add_contents(object doc, string contents)
+{
+  contents = replace(contents, ({"\t", "\r", "\n", ".", "!", ",", "?", "!", "/", "\\", ":"}), ({" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "}));
+
+Log.debug("contents: %s", contents);
+  array terms = (contents / " ") - ({""});
+
+  foreach(terms; int i; string term)
   {
-    get_writer(index)->optimize();
-    i = 0;
+    if(!strlen(term)) continue;
+    string word = stemmer->stem_word(lower_case(term));
+    if(stopper(word)) continue;
+    write("adding " + word + "\n");
+    doc->add_posting(word, i, 1);
   }
-  else i++;
-
   
-  kill_writer(index);
-  kill_reader(index);
-  kill_searcher(index);
-
-  d=0; title=0; contents=0; uuid=0; date=0;
-
-  return id;
 }
 
 static void destroy()
 {
-  foreach(searchers;; object searcher)
-    searcher->close();
-
   foreach(readers;; object reader)
-    reader->close();
+    reader = 0;
 
   foreach(writers;; object writer)
-    writer->close();
+    writer = 0;
 }
 
 }
