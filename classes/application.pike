@@ -31,8 +31,6 @@ class Index
 string indexloc;
 mapping writers = ([]);
 mapping readers = ([]);
-mapping analyzers = ([]);
-mapping searchers = ([]);
 
 static void create(string loc)
 {
@@ -71,14 +69,6 @@ object get_writer(string index)
     writers[index]=Public.Xapian.WriteableDatabase(make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
   }
   return writers[index];
-}
-
-object get_analyzer(string index)
-{
-  if(!analyzers[index])
-    analyzers[index]= analyzer(stopwords);
-
-  return analyzers[index];
 }
 
 object get_reader(string index)
@@ -124,11 +114,6 @@ static string make_indexloc(string index, int|void force)
   }
 
   return loc;
-}
-
-class analyzer(array stopwords)
-{
-
 }
 
 object doSearch(string index, string query, int|void start, int|void max)
