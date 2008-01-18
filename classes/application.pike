@@ -1,7 +1,9 @@
 import Fins;
 import Tools.Logging;
-
+constant qp = Public.Xapian.QueryParser;
 inherit Application;
+
+int flags = qp.FLAG_PHRASE|qp.FLAG_BOOLEAN|qp.FLAG_LOVEHATE|qp.FLAG_SPELLING_CORRECTION;
 
 object index;
 
@@ -49,6 +51,7 @@ void kill_writer(string index)
   {
     destruct(writers[index]);
     m_delete(writers, index);
+
   }
 }
 
@@ -84,7 +87,7 @@ object get_reader(string index)
 int i = 0;
 int optimize_threshold=100;
 
-array stopwords=({"me", "my", "this", "the", "a", "an", "those", "pike",
+array stopwords=({"me", "my", "this", "the", "a", "an", "those",
  "and", "their", "mine", "to", "is", "it", "of", "in", "for", "are", "not"
  "if", "any", "re", "i", "but", "could"});
 
@@ -126,10 +129,12 @@ object doSearch(string index, string query, int|void start, int|void max)
 
   q->set_stopper(stopper);
   q->set_stemmer(stemmer);
+  q->set_stemming_strategy(Public.Xapian.QueryParser.STEM_SOME);
 
-  object qry = q->parse_query(query, 0);
-  Log.debug("have query");
   object s = get_reader(index);
+  q->set_database(s);
+  object qry = q->parse_query(query, flags);
+  Log.debug("have query");
   object e = Public.Xapian.Enquire(s);
   e->set_query(qry, 0);
   Log.debug("getting results.");
@@ -138,7 +143,6 @@ object doSearch(string index, string query, int|void start, int|void max)
 
 array search(string index, string query, string field, int|void max, int|void start)
 {
-  int i;
   array retval = ({});
 Log.debug("search");
   mixed e;
@@ -148,7 +152,7 @@ if(e = catch( results = doSearch(index, query, start, max)))
   Log.exception("error while running query", e);
   Log.debug("%O", results);
 e = catch{
-  for(i = results->begin(); i != results->end(); i->next())
+  foreach(results;; object i)
   {
       retval+= ({ 
                   ([ "score": (float)(i->get_percent()/100.0), 
@@ -168,13 +172,13 @@ if(e) Log.exception("an error occured while generating the results", e);
 
 int delete_by_handle(string index, string handle)
 {
-  get_writer(index)->delete_document(handle);
+  get_writer(index)->delete_document("H" + string_to_utf8(handle));
   return 1;
 }
 
 int delete_by_uuid(string index, string uuid)
 {
-  get_writer(index)->delete_document(uuid);
+  get_writer(index)->delete_document("U" + string_to_utf8(uuid));
   return 1;
 }
 
@@ -201,51 +205,65 @@ string add(string index, mapping doc)
  string id = Standards.UUID.new_string();
  object d;
 
- Log.debug("add");
+// Log.debug("add");
 
  d=Public.Xapian.Document();
 
  d->set_data(doc->excerpt||"");
 
- Log.debug("added data");
+// Log.debug("added data");
 
  d->add_value(0, id);
- Log.debug("added value 0");
+// Log.debug("added value 0");
  d->add_value(1, doc->title || "");
- Log.debug("added value 1");
+// Log.debug("added value 1");
  d->add_value(2, doc->handle || "");
- Log.debug("added value 2");
+// Log.debug("added value 2");
  d->add_value(3, doc->date->format_smtp());
  
- Log.debug("getting ready to add terms");
+// Log.debug("getting ready to add terms");
 
- d->add_term(doc->handle || "", 1);
- d->add_term(id || "", 1);
+ array terms = ({ doc->handle, doc->title, id });
+
+ add_contents(d, terms * " ", 1);
 
  add_contents(d, doc->contents);
+ d->add_term("H" + string_to_utf8(doc->handle), 1);
+ d->add_term("U" + string_to_utf8(id), 1);
 
  get_writer(index)->add_document(d);
 
+ get_reader(index)->reopen();
  kill_writer(index);
  kill_reader(index);
 
  return id;
 }
 
-void add_contents(object doc, string contents)
+void add_contents(object doc, string contents, int|void no_postings)
 {
-  contents = replace(contents, ({"\t", "\r", "\n", ".", "!", ",", "?", "!", "/", "\\", ":"}), ({" ", " ", " ", " ", " ", " ", " ", " ", " ", " ", " "}));
+  object re = Regexp.SimpleRegexp("[a-zA-Z0-9'_]");
 
-Log.debug("contents: %s", contents);
+//Log.debug("contents: %s", contents);
+
+
+  contents = map(contents, 
+         lambda(int i){ return re->match(String.int2char(i))?i:' '; });
+  
   array terms = (contents / " ") - ({""});
 
   foreach(terms; int i; string term)
   {
+    mixed e = catch{
     if(!strlen(term)) continue;
-    string word = stemmer->stem_word(lower_case(term));
+    string word = lower_case(term);
+    word = string_to_utf8(word);
     if(stopper(word)) continue;
-    write("adding " + word + "\n");
-    doc->add_posting(word, i, 1);
+    if(!no_postings)doc->add_posting(word, i, 1);
+    if(!(word[0] >= '0' && word[0] <= '9'))
+      doc->add_term("Z" + stemmer(word), 1);
+    };
+  if(e) write("* * * \n* * * \n" + term + "* * * \n");
   }
   
 }
