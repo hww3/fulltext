@@ -7,7 +7,7 @@ constant __uses_session = 0;
 
 inherit XMLRPCController;
 
-string add(object id, string index, string title, int date, string contents, string handle, string|void excerpt)
+string add(object id, string index, string title, int date, string contents, string handle, string|void excerpt, string mimetype)
 {
   CHECKINDEX();
 
@@ -17,7 +17,8 @@ string add(object id, string index, string title, int date, string contents, str
   uuid = app->index->add(index, (["title": title, "date": dob, 
                            "contents": contents,
                            "excerpt": excerpt,
-                           "handle": handle]));
+                           "handle": handle,
+                           "mimetype": mimetype]));
 
   return uuid;
 }
