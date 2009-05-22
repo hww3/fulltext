@@ -132,12 +132,14 @@ object doSearch(string index, string query, int|void start, int|void max)
   q->set_stemming_strategy(Public.Xapian.QueryParser.STEM_SOME);
 
   object s = get_reader(index);
+  if(!s) throw(Error.Generic("Unable to get a new Xapian Database connection\n"));
   q->set_database(s);
   object qry = q->parse_query(query, flags);
   Log.debug("have query");
   object e = Public.Xapian.Enquire(s);
   e->set_query(qry, 0);
   Log.debug("getting results.");
+  werror("corrected query: %s\n", q->get_corrected_query_string());
   return e->get_mset(start, max, max);
 }
 
@@ -238,6 +240,13 @@ string add(string index, mapping doc)
  kill_reader(index);
 
  return id;
+}
+
+int exists(string index)
+{
+  object o;
+  catch(o = get_reader(index));
+  return(o?1:0);
 }
 
 void add_contents(object doc, string contents, int|void no_postings)

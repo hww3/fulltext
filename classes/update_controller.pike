@@ -40,3 +40,8 @@ void new(object id, string index)
   CHECKINDEX();
   app->index->new(index);
 }
+
+int exists(object id, string index)
+{
+  return app->index->exists(index);
+}
