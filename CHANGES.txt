@@ -1,6 +1,6 @@
+- Use Xapian's TermGenerator and include support for spelling suggestion.
+
 - we've ditched lucene in favor of Xapian (http://www.xapian.org).
   this app therefore requires the Public.Xapian module to be installed.
 
 - Added ability to create multiple indices per server instance.
-- Index stability seems to be better, though Lucene apparently is
-  touchy about how the index is modified.

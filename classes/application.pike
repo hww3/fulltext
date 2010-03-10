@@ -125,6 +125,20 @@ object doSearch(string index, string query, int|void start, int|void max)
   object sorter;
   if(!max) max = 100;
 
+  object q = get_query_parser(index);
+
+  object qry = q->parse_query(query, flags);
+
+  Log.debug("have query");
+  object ftdb = get_reader(index);
+  object e = Public.Xapian.Enquire(ftdb);
+  e->set_query(qry, 0);
+  Log.debug("getting results.");
+  return e->get_mset(start, max, max);
+}
+
+object get_query_parser(string index)
+{
   object q = Public.Xapian.QueryParser();
 
   q->set_stopper(stopper);
@@ -134,13 +148,22 @@ object doSearch(string index, string query, int|void start, int|void max)
   object s = get_reader(index);
   if(!s) throw(Error.Generic("Unable to get a new Xapian Database connection\n"));
   q->set_database(s);
-  object qry = q->parse_query(query, flags);
-  Log.debug("have query");
-  object e = Public.Xapian.Enquire(s);
-  e->set_query(qry, 0);
-  Log.debug("getting results.");
-  werror("corrected query: %s\n", q->get_corrected_query_string());
-  return e->get_mset(start, max, max);
+
+  return q;
+}
+
+mapping search_with_corrections(string index, string query, string field, int|void max, int|void start)
+{
+  mapping res = ([]);
+
+  res->results = search(index, query, field, max, start);
+  object q = get_query_parser(index);
+  q->parse_query(query, flags);
+  string cq = q->get_corrected_query_string();
+
+  if(sizeof(cq)) res->corrected_query = cq;
+
+  return res;
 }
 
 array search(string index, string query, string field, int|void max, int|void start)
@@ -227,13 +250,15 @@ string add(string index, mapping doc)
 
  array terms = ({ doc->handle, doc->title, id });
 
- add_contents(d, terms * " ", 1);
+ object writer = get_writer(index);
 
- add_contents(d, doc->contents);
+ add_contents(writer, d, terms * " ", 1);
+ add_contents(writer, d, doc->contents);
+
  d->add_term("H" + string_to_utf8(doc->handle), 1);
  d->add_term("U" + string_to_utf8(id), 1);
 
- get_writer(index)->add_document(d);
+ writer->add_document(d);
 
  get_reader(index)->reopen();
  kill_writer(index);
@@ -249,31 +274,18 @@ int exists(string index)
   return(o?1:0);
 }
 
-void add_contents(object doc, string contents, int|void no_postings)
+void add_contents(object writer, object doc, string contents, int|void no_postings)
 {
-  object re = Regexp.SimpleRegexp("[a-zA-Z0-9'_]");
+  object tg = Public.Xapian.TermGenerator();
+  tg->set_database(writer);
+  tg->set_document(doc);
+  tg->set_stemmer(stemmer);
+  tg->set_flags(Public.Xapian.TermGenerator.FLAG_SPELLING, 0);
 
-//Log.debug("contents: %s", contents);
-
-
-  contents = map(contents, 
-         lambda(int i){ return re->match(String.int2char(i))?i:' '; });
-  
-  array terms = (contents / " ") - ({""});
-
-  foreach(terms; int i; string term)
-  {
-    mixed e = catch{
-    if(!strlen(term)) continue;
-    string word = lower_case(term);
-    word = string_to_utf8(word);
-    if(stopper(word)) continue;
-    if(!no_postings)doc->add_posting(word, i, 1);
-    if(!(word[0] >= '0' && word[0] <= '9'))
-      doc->add_term("Z" + stemmer(word), 1);
-    };
-  if(e) write("* * * \n* * * \n" + term + "* * * \n");
-  }
+  if(no_postings)
+   tg->index_text_without_positions(contents, 1, "");
+  else
+   tg->index_text(contents, 1, "");
   
 }
 
