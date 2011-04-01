@@ -7,6 +7,15 @@ constant __uses_session = 0;
 
 #define CHECKINDEX() if(!index || index=="0") throw(Error.Generic("index not specified!\n"))
 
+array fetch(object id, string index, int docid)
+{
+  CHECKINDEX();
+
+  Log.info("Got fetch request '" + docid + "' for " + index);
+
+  return app->index->fetch(index, docid);
+}
+
 array search(object id, string index, string query, string field, int start, int max)
 {
   CHECKINDEX();

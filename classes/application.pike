@@ -137,6 +137,30 @@ object doSearch(string index, string query, int|void start, int|void max)
   return e->get_mset(start, max, max);
 }
 
+mapping doFetch(string index, int docid)
+{
+  Log.debug("doFetch");
+
+  object ftdb = get_reader(index);
+
+  mixed doc = ftdb->get_document(docid);
+
+  if(!doc) return 0;
+
+  mapping res = ([]);
+
+  res->data = doc->get_data();
+  res->uuid = doc->get_value(0);
+  res->title = doc->get_value(1);
+  res->handle = doc->get_value(2);
+  res->date = doc->get_value(3);
+  res->author = doc->get_value(4);
+
+  res->docid = docid;
+
+  return res;
+}
+
 object get_query_parser(string index)
 {
   object q = Public.Xapian.QueryParser();
@@ -166,6 +190,11 @@ mapping search_with_corrections(string index, string query, string field, int|vo
   return res;
 }
 
+mapping fetch(string index, int docid)
+{
+  return doFetch(index, docid);
+}
+
 array search(string index, string query, string field, int|void max, int|void start)
 {
   array retval = ({});
@@ -185,7 +214,8 @@ e = catch{
                      "title": i->get_document()->get_value(1),
                      "handle" : i->get_document()->get_value(2),
                      "excerpt" : i->get_document()->get_data(),
-                     "date": i->get_document()->get_value(3)
+                     "date": i->get_document()->get_value(3),
+		     "docid": i->get_docid()
                    ]) 
                 });
   }
