@@ -154,7 +154,7 @@ mapping doFetch(string index, int docid)
   res->title = doc->get_value(1);
   res->handle = doc->get_value(2);
   res->date = doc->get_value(3);
-  res->author = doc->get_value(4);
+  res->misc = doc->get_value(4);
 
   res->docid = docid;
 
@@ -215,6 +215,7 @@ e = catch{
                      "handle" : i->get_document()->get_value(2),
                      "excerpt" : i->get_document()->get_data(),
                      "date": i->get_document()->get_value(3),
+                     "misc": i->get_document()->get_value(4),
 		     "docid": i->get_docid()
                    ]) 
                 });
@@ -260,7 +261,7 @@ string add(string index, mapping doc)
  string id = Standards.UUID.new_string();
  object d;
 
-// Log.debug("add");
+ //Log.debug("add");
 
  d=Public.Xapian.Document();
 
@@ -275,7 +276,8 @@ string add(string index, mapping doc)
  d->add_value(2, doc->handle || "");
 // Log.debug("added value 2");
  d->add_value(3, doc->date->format_smtp());
- 
+// Log.debug("added value 3");
+ d->add_value(4, doc->misc||""); 
 // Log.debug("getting ready to add terms");
 
  array terms = ({ doc->handle, doc->title, id });
@@ -287,6 +289,8 @@ string add(string index, mapping doc)
 
  d->add_term("H" + string_to_utf8(doc->handle), 1);
  d->add_term("U" + string_to_utf8(id), 1);
+
+// werror("adding %O\n", d);
 
  writer->add_document(d);
 
