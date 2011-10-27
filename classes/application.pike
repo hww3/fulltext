@@ -258,7 +258,7 @@ void new(string index)
 //!  a string containing the uuid of the document in the index.
 string add(string index, mapping doc)
 {
- string id = Standards.UUID.new_string();
+ string id = (string)Standards.UUID.make_version4();
  object d;
 
  //Log.debug("add");
