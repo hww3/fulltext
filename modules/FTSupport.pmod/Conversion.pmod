@@ -1,3 +1,4 @@
+import Tools.Logging;
 
 //! used for internal pike converters
   class PikeFilter(function convert)
@@ -34,7 +35,7 @@
          else break;
        }
        while(1);
-        report_debug(e->read(1024,1));
+        Log.debug(e->read(1024,1));
        return ret;
     }
   }
@@ -76,7 +77,7 @@
            else break;
           }
          while(1);
-         report_debug(e->read(1024,1));
+         Log.debug(e->read(1024,1));
          do
          {
            p->wait();
@@ -93,4 +94,3 @@
        return ret;
     }
   }
-}

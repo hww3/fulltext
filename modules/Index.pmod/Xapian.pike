@@ -19,7 +19,7 @@ array stopwords=({"me", "my", "this", "the", "a", "an", "those",
 object stopper = Public.Xapian.SimpleStopper(stopwords);
 object stemmer = Public.Xapian.Stem("english");
 
-static void create(string loc, mapping config)
+static void create(string loc, mixed config)
 {
   Stdio.Stat f = file_stat(loc);
   if(!f || !f->isdir)
@@ -35,14 +35,19 @@ static void create(string loc, mapping config)
 void start(mixed config)
 {
   array stopwords=({});
-  if(config["index"]["stopwordsfile"])
+  if(config["index"] && config["index"]["stopwordsfile"])
   {
     string f = Stdio.read_file(config["index"]["stopwordsfile"]);
     if(f && sizeof(f))
     {
-      array words = (f/"\n") - "\n";
+      array words = (f/"\n") - ({""});
       set_stopwords(words);
     }
+  }
+
+  if(config["index"] && config["index"]["stem_language"])
+  {
+    set_stemmer(config["index"]["stem_language"]);
   }
 
   convert::start(config);
@@ -150,7 +155,7 @@ static string make_indexloc(string index, int|void force)
 object doSearch(string index, string query, int|void start, int|void max)
 {
   Log.debug("doSearch");
-  object sorter;
+ // object sorter;
   if(!max) max = 100;
 
   object q = get_query_parser(index);
@@ -360,4 +365,3 @@ static void destroy()
     writer = 0;
 }
 
-}

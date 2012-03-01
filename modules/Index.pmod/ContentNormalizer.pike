@@ -5,8 +5,7 @@ object parser, stripper;
 
 void start(mixed config)
 {
-  setup_html_converter(config);
-  setup_converters();
+  setup_converters(config);
 }
 
 int allowed_type(string type)
@@ -46,31 +45,36 @@ void setup_html_converter(mixed config)
 
    parser->add_container("title", set_title);
 //   parser->add_container("pre", continue_tag);
-   parser->add_container("a", add_url);
+//   parser->add_container("a", add_url);
    parser->add_container("script", strip_tag);
    parser->add_container("style", strip_tag);
    stripper->_set_tag_callback(strip_tag);
 }
 
+mixed set_title(Parser.HTML p, mapping args, string content)
+{
+  return "";
+}
+
 void setup_converters(mixed config)
 {
-  setup_html_converter();
-  foreach(glob("transform_*", indices(config)); int t; string t)
+  setup_html_converter(config);
+  foreach(glob("transform_*", indices(config)); int x; string t)
   {
     mapping c = config[t];
 
     werror("Configuring converter for " + c->mimetype + "\n");
     if(c->type=="filter")
-      converters[c->mimetype]=FTSupport.Filter(c->command);
+      converters[c->mimetype]=FTSupport.Conversion.Filter(c->command);
     if(c->type=="converter")
-      converters[c->mimetype]=FTSupport.Converter(c->command, config["indexer"]->temp);
+      converters[c->mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp);
     else werror("unknown converter type " + c->type +  " for mime type " + c->mimetype + "\n");
   }
 
   werror("Configuring internal converter for text/plain\n");
-  converters["text/plain"]=FTSupport.PikeFilter(lambda(string d){ return d;});
+  converters["text/plain"]=FTSupport.Conversion.PikeFilter(lambda(string d){ return d;});
 
   werror("Configuring internal converter for text/html\n");
-  converters["text/html"]=FTSupport.PikeFilter(lambda(string d){ return d;});
+  converters["text/html"]=FTSupport.Conversion.PikeFilter(lambda(string d){ return d;});
 
 }

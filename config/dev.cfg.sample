@@ -1,2 +1,5 @@
 [controller]
 class=controller
+
+[indexer]
+temp=/tmp

@@ -14,7 +14,7 @@ void start()
   signal(signum("SIGKILL"), shutdown_app);
   signal(signum("SIGABRT"), shutdown_app);
 
-  index = Index(getcwd() + "/ft", config);
+  index = Index.Xapian(getcwd() + "/ft", config);
 }
 
 
