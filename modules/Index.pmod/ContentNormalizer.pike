@@ -1,3 +1,5 @@
+import Tools.Logging;
+
 mapping converters=([]);
 multiset allowed_types=(<>);
 multiset denied_types=(<>);
@@ -6,6 +8,56 @@ object parser, stripper;
 void start(mixed config)
 {
   setup_converters(config);
+  setup_type_permits(config);
+}
+
+void setup_type_permits(mixed config)
+{
+  mapping permits = config["permits"];  
+
+  if(permits && sizeof(permits))
+  {
+    if(permits["allow"])
+    {
+      mixed r = permits["allow"];
+      if(stringp(r))
+        r = ({permits["allow"]});
+      allowed_types = (multiset)r;
+    }
+    if(permits["deny"])
+    {
+      mixed r = permits["deny"];
+      if(stringp(r))
+        r = ({permits["deny"]});
+      denied_types = (multiset)r;
+    }
+  }
+}
+
+string prepare_content(string data, string type)
+{
+   if(converters[type])
+  {
+    Log.info("performing conversion for data of type " + type);
+    data=converters[type]->convert(data);
+  }
+  if(!data || !strlen(data))
+  {
+    Log.info("  ...converter returned no data");
+  }
+
+
+   // clear the parsers
+    parser=parser->clone();
+    stripper=stripper->clone();
+
+     parser->feed(data);
+    data=parser->read();
+
+    stripper->feed(data);
+    data=stripper->read();
+
+  return data;
 }
 
 int allowed_type(string type)
@@ -18,7 +70,12 @@ int allowed_type(string type)
    {
      if(glob(t, type)) return 1;
    }
-   return 0;
+
+   // if we specify any allowed types, only permit those on the list.
+   // otherwise, allow anything that's not denied.
+   if(sizeof(allowed_types))
+     return 0;
+   else return 1;
 }
 
 mixed strip_tag(Parser.HTML p, string t)

@@ -188,6 +188,7 @@ mapping doFetch(string index, int docid)
   res->handle = doc->get_value(2);
   res->date = doc->get_value(3);
   res->misc = doc->get_value(4);
+  res->keywords = doc->get_value(5);
 
   res->docid = docid;
 
@@ -284,21 +285,35 @@ void new(string index)
 
 }
 
-//! adds a document to the index. fields: title, contents, date (Calendar object)
+string make_excerpt(string content)
+{
+ return 0;
+}
+
+//! adds a document to the index. fields: title, excerpt, misc, mimetype, handle, contents, keywords, date (Calendar object)
 //! handle
 //!
 //! @returns
 //!  a string containing the uuid of the document in the index.
 string add(string index, mapping doc)
 {
+ if(!allowed_type(doc->mimetype))
+ {
+   Log.info("Not indexing prohibited type " + doc->mimetype);
+    return 0;
+ }
+
  string id = (string)Standards.UUID.make_version4();
  object d;
+ string content;
 
  //Log.debug("add");
 
  d=Public.Xapian.Document();
 
- d->set_data(doc->excerpt||"");
+ content = prepare_content(doc->contents, doc->mimetype);
+
+ d->set_data(doc->excerpt||make_excerpt(content)||"");
 
 // Log.debug("added data");
 
@@ -312,13 +327,17 @@ string add(string index, mapping doc)
 // Log.debug("added value 3");
  d->add_value(4, doc->misc||""); 
 // Log.debug("getting ready to add terms");
+ d->add_value(5, doc->keywords?(doc->keywords*", "):""); 
+// Log.debug("getting ready to add terms");
 
  array terms = ({ doc->handle, doc->title, id });
+
+ if(doc->keywords) terms += doc->keywords;
 
  object writer = get_writer(index);
 
  add_contents(writer, d, terms * " ", 1);
- add_contents(writer, d, doc->contents);
+ add_contents(writer, d, content);
 
  d->add_term("H" + string_to_utf8(doc->handle), 1);
  d->add_term("U" + string_to_utf8(id), 1);
