@@ -1,3 +1,7 @@
+- Added format conversion and metadata extraction (in progress)
+
+- Allow stopwords and stemmer (language) to be specified in config file.
+
 - Use Xapian's TermGenerator and include support for spelling suggestion.
 
 - we've ditched lucene in favor of Xapian (http://www.xapian.org).
