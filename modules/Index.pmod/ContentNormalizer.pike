@@ -36,14 +36,16 @@ void setup_type_permits(mixed config)
 
 string prepare_content(string data, string type)
 {
+  Log.debug("prepare_content(%O, %O)", data, type);
    if(converters[type])
   {
     Log.info("performing conversion for data of type " + type);
     data=converters[type]->convert(data);
-  }
-  if(!data || !strlen(data))
-  {
-    Log.info("  ...converter returned no data");
+
+    if(!data || !strlen(data))
+    {
+      Log.info("  ...converter returned no data");
+    }
   }
 
 
@@ -56,12 +58,15 @@ string prepare_content(string data, string type)
 
     stripper->feed(data);
     data=stripper->read();
+  Log.debug("prepare_content(%O, %O): finished", data, type);
 
   return data;
 }
 
 int allowed_type(string type)
 {
+Log.debug(sprintf("allowed: %O, denied: %O\n", allowed_types, denied_types)-"\n");
+
    foreach(indices(denied_types), string t)
    {
      if(glob(t, type)) return 0;
@@ -73,6 +78,7 @@ int allowed_type(string type)
 
    // if we specify any allowed types, only permit those on the list.
    // otherwise, allow anything that's not denied.
+
    if(sizeof(allowed_types))
      return 0;
    else return 1;

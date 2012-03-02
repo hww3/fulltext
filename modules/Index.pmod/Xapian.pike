@@ -287,7 +287,7 @@ void new(string index)
 
 string make_excerpt(string content)
 {
- return 0;
+ return FTSupport.make_excerpt(content);
 }
 
 //! adds a document to the index. fields: title, excerpt, misc, mimetype, handle, contents, keywords, date (Calendar object)
@@ -297,24 +297,33 @@ string make_excerpt(string content)
 //!  a string containing the uuid of the document in the index.
 string add(string index, mapping doc)
 {
+ Log.debug("Index.Xapian.add()");
+
  if(!allowed_type(doc->mimetype))
  {
-   Log.info("Not indexing prohibited type " + doc->mimetype);
-    return 0;
+   Log.debug("Index.Xapian.add(): checking for permission.");
+   Log.warn("Not indexing prohibited type " + doc->mimetype);
+   return 0;
  }
+ else
+   Log.debug("Index.Xapian.add(): able to add mimetype.");
 
  string id = (string)Standards.UUID.make_version4();
  object d;
  string content;
 
- //Log.debug("add");
+ Log.debug("Index.Xapian.add(): creating Document object");
 
  d=Public.Xapian.Document();
 
  content = prepare_content(doc->contents, doc->mimetype);
 
+werror("content: %O\n", content);
+werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
+
  d->set_data(doc->excerpt||make_excerpt(content)||"");
 
+ werror("yes.\n");
 // Log.debug("added data");
 
  d->add_value(0, id);
@@ -337,12 +346,13 @@ string add(string index, mapping doc)
  object writer = get_writer(index);
 
  add_contents(writer, d, terms * " ", 1);
+werror("content: %O\n", content);
  add_contents(writer, d, content);
 
  d->add_term("H" + string_to_utf8(doc->handle), 1);
  d->add_term("U" + string_to_utf8(id), 1);
 
-// werror("adding %O\n", d);
+ werror("adding %O\n", d);
 
  writer->add_document(d);
 
