@@ -1,0 +1,8 @@
+#!/bin/sh
+
+output=`mktemp`
+rtf2html $1 $output 1>&2
+res=$?
+cat $output
+rm -f $output
+exit $res
