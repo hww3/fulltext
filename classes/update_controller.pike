@@ -35,10 +35,10 @@ int delete_by_uuid(object id, string index, string uuid)
   return app->index->delete_by_uuid(index, uuid);
 }
 
-void new(object id, string index)
+int new(object id, string index)
 {
   CHECKINDEX();
-  app->index->new(index);
+  return app->index->new(index);
 }
 
 int exists(object id, string index)

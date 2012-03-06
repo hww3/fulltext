@@ -21,15 +21,9 @@ array search(string query, int|void limit, int|void start)
 //!  in the index.
 array advanced_search(string query, string search_field, int|void limit, int|void start)
 {
-  if(!c) c = get_client();
   // for some reason, the logical order of used arguments is reversed.
-  mixed r = c["search"](name, query, search_field, limit||25, start||0);
-  
-  if(objectp(r))
-    throw(.RemoteError(r));
+  return (array)call("search", query, search_field, limit||25, start||0);
 
-  if(r[0] && !sizeof(r[0])) return ({});
-  else return r[0];
 }
 
 //! Search the index looking for records whose content matches query with
@@ -43,7 +37,7 @@ array advanced_search(string query, string search_field, int|void limit, int|voi
 //!  In either case, results will always be returned, though it may 
 //!  not contain any data (if the query was so incorrect that no results
 //!  matched, for example).
-array search_with_corrections(string query, int|void limit, int|void start)
+mapping search_with_corrections(string query, int|void limit, int|void start)
 {
   return advanced_search_with_corrections(query, "contents", limit, start);
 }
@@ -59,27 +53,13 @@ array search_with_corrections(string query, int|void limit, int|void start)
 //!  In either case, results will always be returned, though it may 
 //!  not contain any data (if the query was so incorrect that no results
 //!  matched, for example).
-array advanced_search_with_corrections(string query, string search_field, int|void limit, int|void start)
+mapping advanced_search_with_corrections(string query, string search_field, int|void limit, int|void start)
 {
-  if(!c) c = get_client();
   // for some reason, the logical order of used arguments is reversed.
-  mixed r = c["search_with_corrections"](name, query, search_field, limit||25, start||0);
-  
-  if(objectp(r))
-    throw(.RemoteError(r));
-
-  if(r[0] && !sizeof(r[0])) return ({});
-  else return r[0];
+  return (mapping)call("search_with_corrections", query, search_field, limit||25, start||0);
 }
 
 mapping fetch(int document_id)
 {
-    if(!c) c = get_client();
-  // for some reason, the logical order of used arguments is reversed.
-  mixed r = c["fetch"](name, document_id);
-
-  if(objectp(r))
-    throw(.RemoteError(r));
-
-  return r[0];
+  return call("fetch", document_id);
 }
