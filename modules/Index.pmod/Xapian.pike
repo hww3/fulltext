@@ -318,12 +318,11 @@ string add(string index, mapping doc)
 
  content = prepare_content(doc->contents, doc->mimetype);
 
-werror("content: %O\n", content);
-werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
+//werror("content: %O\n", content);
+//werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
 
  d->set_data(doc->excerpt||make_excerpt(content)||"");
 
- werror("yes.\n");
 // Log.debug("added data");
 
  d->add_value(0, id);
@@ -346,14 +345,15 @@ werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
  object writer = get_writer(index);
 
  add_contents(writer, d, terms * " ", 1);
-werror("content: %O\n", content);
+//werror("content: %O\n", content);
  add_contents(writer, d, content);
 
  d->add_term("H" + string_to_utf8(doc->handle), 1);
  d->add_term("U" + string_to_utf8(id), 1);
 
- werror("adding %O\n", d);
+// werror("adding %O\n", d);
 
+ Log.info("adding document with %d terms.", sizeof(terms));
  writer->add_document(d);
 
  get_reader(index)->reopen();

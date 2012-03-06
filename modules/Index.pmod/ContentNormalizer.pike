@@ -36,7 +36,7 @@ void setup_type_permits(mixed config)
 
 string prepare_content(string data, string type)
 {
-  Log.debug("prepare_content(%O, %O)", data, type);
+//  Log.debug("prepare_content(%O, %O)", data, type);
    if(converters[type])
   {
     Log.info("performing conversion for data of type " + type);
@@ -58,7 +58,7 @@ string prepare_content(string data, string type)
 
     stripper->feed(data);
     data=stripper->read();
-  Log.debug("prepare_content(%O, %O): finished", data, type);
+//  Log.debug("prepare_content(%O, %O): finished", data, type);
 
   return data;
 }
@@ -122,16 +122,16 @@ mixed set_title(Parser.HTML p, mapping args, string content)
 void setup_converters(mixed config)
 {
   setup_html_converter(config);
-  foreach(glob("transform_*", indices(config)); int x; string t)
+  foreach(glob("transform_*", config->get_sections()); int x; string t)
   {
     mapping c = config[t];
 
     werror("Configuring converter for " + c->mimetype + "\n");
     if(c->type=="filter")
       converters[c->mimetype]=FTSupport.Conversion.Filter(c->command);
-    if(c->type=="converter")
+    else if(c->type=="converter")
       converters[c->mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp);
-    else werror("unknown converter type " + c->type +  " for mime type " + c->mimetype + "\n");
+    else werror("unknown converter type %O for mime type %O\n", c->type, c->mimetype);
   }
 
   werror("Configuring internal converter for text/plain\n");

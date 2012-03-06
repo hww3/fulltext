@@ -20,6 +20,7 @@ import Tools.Logging;
        object e=Stdio.File();
        array args=command/" ";
 
+       Log.info("starting filter process: %O", args*" ");
        object p=Process.create_process(args, (["stdin": i->pipe(), "stdout": o->pipe(), "stderr":
          e->pipe()]));
 
@@ -30,12 +31,17 @@ import Tools.Logging;
        do
        {
          r=o->read(1024, 1);
+	   Log.debug("filter output %d bytes", r?sizeof(r):-1);
+
          if(sizeof(r)>0)
            ret+=r;
          else break;
        }
        while(1);
-        Log.debug(e->read(1024,1));
+	
+	string err = e->read(1024,1);
+        if(err)
+          Log.debug("filter reported possible errors: %s", err);
        return ret;
     }
   }
@@ -65,6 +71,7 @@ import Tools.Logging;
        array args=ncommand/" ";
          object o=Stdio.File();
          object e=Stdio.File();
+         Log.info("starting converter process: %O", args*" ");
          object p=Process.create_process(args, (["stdout": o->pipe(), "stderr": e->pipe()]));
 
 
@@ -72,12 +79,15 @@ import Tools.Logging;
          do
          {
            r=o->read(1024, 1);
+	   Log.debug("converter output %d bytes", r?sizeof(r):-1);
            if(sizeof(r)>0)
              ret+=r;
            else break;
           }
          while(1);
-         Log.debug(e->read(1024,1));
+ 	 string err = e->read(1024,1);
+         if(err)
+           Log.debug("converter reported possible errors: %s", err);
          do
          {
            p->wait();
@@ -88,6 +98,7 @@ import Tools.Logging;
 
        if(file_stat(tempfile))
        {
+         Log.debug("deleting temporary input file %O", tempfile);
          rm(tempfile);
        }
        tempfile="";
