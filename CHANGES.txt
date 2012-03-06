@@ -1,12 +1,9 @@
+- Added max CPU limit for content converters (config section "limits" 
+     -> setting "maxcpu")
 - Added format conversion
-
 - Added metadata extraction (in progress)
-
 - Allow stopwords and stemmer (language) to be specified in config file.
-
 - Use Xapian's TermGenerator and include support for spelling suggestion.
-
 - we've ditched lucene in favor of Xapian (http://www.xapian.org).
   this app therefore requires the Public.Xapian module to be installed.
-
 - Added ability to create multiple indices per server instance.

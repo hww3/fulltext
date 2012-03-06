@@ -17,7 +17,6 @@ type=converter
 mimetype=application/pdf
 command=/usr/local/bin/pdftohtml -stdout -q %f
 
-
 RTF
 
 http://sourceforge.net/projects/rtf2html-lite/
@@ -44,7 +43,6 @@ everything a user might need to make this happen. Hint: start with the RTF filte
 
 http://www.abisource.com/wiki/AbiCommand
 
-
 OTHERS
 
 Apache Tika seems like it could be a useful tool, it includes support for a number 
@@ -53,5 +51,17 @@ of popular file formats and has an out of the box command line utility.
 Drawbacks include:
 
 - written in java, so not exactly nimble
-- this, combined with the fact that it's an apache project means it has a 
-  ridiculous dependency tree
+
+If you download the Tika jar from the Apache Tika website, you can use the following
+config section to handle pdf, doc and various other formats:
+
+[transform_tika]
+type=converter
+command=java -jar /home/hww3/Fins/FullText/extras/tika-app-1.0.jar -h %f
+mimetype=application/pdf
+mimetype=text/rtf
+mimetype=application/rtf
+mimetype=application/msword
+mimetype=application/vnd.openxmlformats-officedocument.wordprocessingml.document
+mimetype=application/vnd.oasis.opendocument.text
+mimetype=application/x-vnd.oasis.opendocument.text

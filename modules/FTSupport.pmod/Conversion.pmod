@@ -8,7 +8,7 @@ import Tools.Logging;
 
 //! a filter for programs that act as filters (read on stdin and write the
 //! converted data on stdout.
-  class Filter(string command)
+  class Filter(string command, mapping limits)
   {
 
     //!
@@ -22,7 +22,7 @@ import Tools.Logging;
 
        Log.info("starting filter process: %O", args*" ");
        object p=Process.create_process(args, (["stdin": i->pipe(), "stdout": o->pipe(), "stderr":
-         e->pipe()]));
+         e->pipe(), "rlimit": limits]));
 
        i->write(data);
        i->close();
@@ -48,7 +48,7 @@ import Tools.Logging;
 
 //! this is a filter for programs that do not act as filters (they read a
 //!   file and write converted output on stdout.
-  class Converter(string command, string tempdir)
+  class Converter(string command, string tempdir, mapping limits)
   {
     int i=0;
 
@@ -72,7 +72,7 @@ import Tools.Logging;
          object o=Stdio.File();
          object e=Stdio.File();
          Log.info("starting converter process: %O", args*" ");
-         object p=Process.create_process(args, (["stdout": o->pipe(), "stderr": e->pipe()]));
+         object p=Process.create_process(args, (["stdout": o->pipe(), "stderr": e->pipe(), "rlimit": limits]));
 
 
          mixed r;

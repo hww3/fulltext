@@ -5,10 +5,26 @@ multiset allowed_types=(<>);
 multiset denied_types=(<>);
 object parser, stripper;
 
+mapping limits = (["cpu": 30]);
+
 void start(mixed config)
 {
   setup_converters(config);
   setup_type_permits(config);
+  set_limits(config);
+}
+
+void set_limits(mixed config)
+{
+  if(config["limits"])
+  {
+    mixed m = config["limits"];
+    if(m->maxcpu)
+    {
+      Log.info("setting maximum converter cpu time to %d seconds.", (int)m->maxcpu);
+      limits->cpu = (int)m->maxcpu;
+    }
+  }
 }
 
 void setup_type_permits(mixed config)
@@ -138,9 +154,9 @@ void setup_converters(mixed config)
     {
       werror("Configuring converter for " + mimetype + "\n");
       if(c->type=="filter")
-        converters[mimetype]=FTSupport.Conversion.Filter(c->command);
+        converters[mimetype]=FTSupport.Conversion.Filter(c->command, limits);
       else if(c->type=="converter")
-        converters[mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp);
+        converters[mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp, limits);
       else werror("unknown converter type %O for mime type %O\n", c->type, mimetype);
     }
   }
