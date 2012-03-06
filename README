@@ -1,3 +1,32 @@
+Client Example
+
+
+string index = "myFTIndex";
+
+// change to '1' if you want to create the index if it doesn't exist.
+int create_if_new = 0;  
+
+
+// if we're running the FullText application on http://localhost:8124, 
+// we can use the default url.
+object u = UpdateClient(0, index, create_if_new);
+
+// now, let's add some content
+string content =  "mary had a little lamb, its fleece was white as snow.";
+string title = "mary and her lamb"; // the title of the content, stored and returned with searches
+string handle = "/rhymes/mary"; // a (hopefully) unique identifier for this bit of content
+
+ u->add(title, Calendar.now()->seconds(), content, handle, 0, "text/plain");
+
+// ok, now that we've added, we can search:
+
+object s = SearchClient(0, index);
+
+foreach(s->search("lamb");; mapping doc)
+  werror("found a hit: %O, rating: %O, handle: %O", doc->title, doc->score, doc->handle);
+
+
+
 Indexing support for various file formats
 
 The indexer has built in support for plain text files and HTML. You may add support for 
