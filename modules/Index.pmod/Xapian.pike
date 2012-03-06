@@ -298,7 +298,6 @@ string make_excerpt(string content)
 string add(string index, mapping doc)
 {
  Log.debug("Index.Xapian.add()");
-
  if(!allowed_type(doc->mimetype))
  {
    Log.debug("Index.Xapian.add(): checking for permission.");

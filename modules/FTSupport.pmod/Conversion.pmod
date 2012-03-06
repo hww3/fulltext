@@ -40,7 +40,7 @@ import Tools.Logging;
        while(1);
 	
 	string err = e->read(1024,1);
-        if(err)
+        if(sizeof(err))
           Log.debug("filter reported possible errors: %s", err);
        return ret;
     }
@@ -86,7 +86,7 @@ import Tools.Logging;
           }
          while(1);
  	 string err = e->read(1024,1);
-         if(err)
+         if(sizeof(err))
            Log.debug("converter reported possible errors: %s", err);
          do
          {

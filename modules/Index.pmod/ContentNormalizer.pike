@@ -58,7 +58,8 @@ string prepare_content(string data, string type)
 
     stripper->feed(data);
     data=stripper->read();
-//  Log.debug("prepare_content(%O, %O): finished", data, type);
+
+  Log.debug("prepare_content(%O, %O): finished", data, type);
 
   return data;
 }
@@ -111,7 +112,7 @@ void setup_html_converter(mixed config)
 //   parser->add_container("a", add_url);
    parser->add_container("script", strip_tag);
    parser->add_container("style", strip_tag);
-   stripper->_set_tag_callback(strip_tag);
+  stripper->_set_tag_callback(strip_tag);
 }
 
 mixed set_title(Parser.HTML p, mapping args, string content)

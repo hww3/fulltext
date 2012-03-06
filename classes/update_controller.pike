@@ -15,7 +15,7 @@ string add(object id, string index, string title, int date, string contents, str
   object dob = Calendar.Gregorian.Second(date);
   Log.info("Adding %s (date %O) to index %s", title, dob, index);
   uuid = app->index->add(index, (["title": title, "date": dob, 
-                           "contents": contents,
+                           "contents": MIME.decode_base64(contents),
                            "excerpt": excerpt,
                            "handle": handle,
                            "mimetype": mimetype]));
