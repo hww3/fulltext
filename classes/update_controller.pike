@@ -23,6 +23,19 @@ string add(object id, string index, string title, int date, string contents, str
   return uuid;
 }
 
+string add_from_map(object id, string index, mapping doc)
+{
+  CHECKINDEX();
+
+  string uuid;
+  doc->date = Calendar.Gregorian.Second(doc->date);
+  doc->contents = MIME.decode_base64(doc->contents);
+  Log.info("Adding %s (date %O) to index %s", doc->title, doc->date, index);
+  uuid = app->index->add(index, doc);
+
+  return uuid;
+}
+
 int delete_by_handle(object id, string index, string handle)
 {
   CHECKINDEX();
