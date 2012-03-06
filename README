@@ -44,3 +44,14 @@ everything a user might need to make this happen. Hint: start with the RTF filte
 
 http://www.abisource.com/wiki/AbiCommand
 
+
+OTHERS
+
+Apache Tika seems like it could be a useful tool, it includes support for a number 
+of popular file formats and has an out of the box command line utility.
+
+Drawbacks include:
+
+- written in java, so not exactly nimble
+- this, combined with the fact that it's an apache project means it has a 
+  ridiculous dependency tree
