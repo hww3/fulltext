@@ -1,0 +1,46 @@
+Indexing support for various file formats
+
+The indexer has built in support for plain text files and HTML. You may add support for 
+additional file formats by telling the engine about programs that can convert other formats
+to HTML or plain text.
+
+Some examples that have been successfully tested:
+
+PDF
+
+http://pdftohtml.sourceforge.net/
+
+Install pdftohtml and then add the following to your FullText config file:
+
+[transform_pdf]
+type=converter
+mimetype=application/pdf
+command=/usr/local/bin/pdftohtml -stdout -q %f
+
+
+RTF
+
+http://sourceforge.net/projects/rtf2html-lite/
+
+The free tool, rtf2html, can be used to process rtf files. However, out of the box,
+this tool does not behave as either a filter or converter. A simple script is included
+in the extras folder which can be used to make the rtf2html utility behave in a compatible
+mannter.
+
+Install rtf2html, edit the rtf2html_converter script appropriately,  and then add the 
+following to your FullText config file:
+
+[transform_rtf]
+type=converter
+mimetype=text/rtf
+command=/path/to/extras/rtf2html_converter %f
+
+DOC/DOCX/ODT/ABW
+
+AbiWord can load various Word/OpenOffice formats and includes a tool called "AbiCommand"
+that can be used to read a file and convert it into HTML format. The actual implementation
+is left as an exercise to for the reader, however, the following page includes almost
+everything a user might need to make this happen. Hint: start with the RTF filter above. 
+
+http://www.abisource.com/wiki/AbiCommand
+

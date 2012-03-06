@@ -1,4 +1,6 @@
-- Added format conversion and metadata extraction (in progress)
+- Added format conversion
+
+- Added metadata extraction (in progress)
 
 - Allow stopwords and stemmer (language) to be specified in config file.
 
