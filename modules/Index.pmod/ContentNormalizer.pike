@@ -125,13 +125,23 @@ void setup_converters(mixed config)
   foreach(glob("transform_*", config->get_sections()); int x; string t)
   {
     mapping c = config[t];
+    array mt;
+    if(arrayp(c->mimetype))
+      mt = c->mimetype;
+    else if(stringp(c->mimetype))
+      mt = ({ c->mimetype });
+    else
+      mt = ({});
 
-    werror("Configuring converter for " + c->mimetype + "\n");
-    if(c->type=="filter")
-      converters[c->mimetype]=FTSupport.Conversion.Filter(c->command);
-    else if(c->type=="converter")
-      converters[c->mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp);
-    else werror("unknown converter type %O for mime type %O\n", c->type, c->mimetype);
+    foreach(mt;; string mimetype)
+    {
+      werror("Configuring converter for " + mimetype + "\n");
+      if(c->type=="filter")
+        converters[mimetype]=FTSupport.Conversion.Filter(c->command);
+      else if(c->type=="converter")
+        converters[mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp);
+      else werror("unknown converter type %O for mime type %O\n", c->type, mimetype);
+    }
   }
 
   werror("Configuring internal converter for text/plain\n");
