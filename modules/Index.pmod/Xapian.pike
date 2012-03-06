@@ -152,7 +152,7 @@ static string make_indexloc(string index, int|void force)
   return loc;
 }
 
-object doSearch(string index, string query, int|void start, int|void max)
+object doSearch(string index, string query, int|void max, int|void start)
 {
   Log.debug("doSearch");
  // object sorter;
@@ -236,7 +236,7 @@ Log.debug("search");
   mixed e;
   object results;
 
-if(e = catch( results = doSearch(index, query, start, max)))
+if(e = catch( results = doSearch(index, query, max, start)))
   Log.exception("error while running query", e);
   Log.debug("%O", results);
 e = catch{

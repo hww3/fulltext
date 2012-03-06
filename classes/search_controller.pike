@@ -16,21 +16,21 @@ array fetch(object id, string index, int docid)
   return app->index->fetch(index, docid);
 }
 
-array search(object id, string index, string query, string field, int start, int max)
+array search(object id, string index, string query, string field, int max, int start)
 {
   CHECKINDEX();
 
   Log.info("Got search query '" + query + "' for " + index);
 
-  return app->index->search(index, query, field, start, max);
+  return app->index->search(index, query, field, max, start);
 }
 
-mapping search_with_corrections(object id, string index, string query, string field, int start, int max)
+mapping search_with_corrections(object id, string index, string query, string field, int max, int start)
 {
   CHECKINDEX();
 
   Log.info("Got search query (corrections requested) '" + query + "' for " + index);
 
-  return app->index->search_with_corrections(index, query, field, start, max);
+  return app->index->search_with_corrections(index, query, field, max, start);
 }
 
