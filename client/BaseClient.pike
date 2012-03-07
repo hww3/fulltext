@@ -1,15 +1,17 @@
 string url = "http://localhost:8124";
 string type;
 string name = "default";
+protected string auth;
 
 protected object c; // the client
 
-protected void create(string|void index_url, string|void index_name)
+protected void create(string|void index_url, string|void index_name, string _auth)
 {
   if(index_url) 
     url = index_url;
   if(index_name)
     name = index_name;
+  auth = _auth;
 
   if(!type) throw(Error.Generic("Cannot instantiate BaseClient directly!\n"));
 }
@@ -38,5 +40,12 @@ protected mixed call(string func_name, mixed ... args)
 
 protected mixed index_call(string func_name, mixed ... args)
 {
-  return call(func_name, name, @args);
+  return auth_call(func_name, name, @args);
 }
+
+protected mixed auth_call(string func, mixed ... args)
+{
+  return call(func, auth, @args);
+}
+
+

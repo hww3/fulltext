@@ -4,11 +4,13 @@ import Tools.Logging;
 constant __uses_session = 0;
 
 #define CHECKINDEX() if(!index || index=="0") throw(Error.Generic("index not specified!\n"))
+#define CHECKAUTH() if(!auth || app->check_access(index, auth)) throw(Error.Generic("authorization failed!\n"))
 
 inherit XMLRPCController;
 
-string add(object id, string index, string title, int date, string contents, string handle, string|void excerpt, string mimetype)
+string add(object id, string auth, string index, string title, int date, string contents, string handle, string|void excerpt, string mimetype)
 {
+  CHECKAUTH();
   CHECKINDEX();
 
   string uuid;
@@ -23,8 +25,9 @@ string add(object id, string index, string title, int date, string contents, str
   return uuid;
 }
 
-string add_from_map(object id, string index, mapping doc)
+string add_from_map(object id, string auth, string index, mapping doc)
 {
+  CHECKAUTH();
   CHECKINDEX();
 
   string uuid;
@@ -36,24 +39,28 @@ string add_from_map(object id, string index, mapping doc)
   return uuid;
 }
 
-int delete_by_handle(object id, string index, string handle)
+int delete_by_handle(object id, string auth, string index, string handle)
 {
+  CHECKAUTH();
   CHECKINDEX();
   return app->index->delete_by_handle(index, handle);
 }
 
-int delete_by_uuid(object id, string index, string uuid)
+int delete_by_uuid(object id, string auth, string index, string uuid)
 {
+  CHECKAUTH();
   CHECKINDEX();
   return app->index->delete_by_uuid(index, uuid);
 }
 
-int new(object id, string index)
+int new(object id, string auth, string index)
 {
+  CHECKAUTH();
   CHECKINDEX();
   return app->index->new(index);
 }
 
+// should this be auth protected as well?
 int exists(object id, string index)
 {
   return app->index->exists(index);

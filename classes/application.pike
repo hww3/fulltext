@@ -3,6 +3,9 @@ import Tools.Logging;
 
 inherit Application;
 
+mapping admin_user_cache = ([]);
+int simple_security = 0;
+
 object index;
 
 void start()
@@ -15,6 +18,27 @@ void start()
   signal(signum("SIGABRT"), shutdown_app);
 
   index = Index.Xapian(getcwd() + "/ft", config);
+
+  mixed t;
+  mixed e = catch(t = config->get_value("auth", "admin"));
+  if(e || !t)
+  {
+    string atoken = index->mkauthcode("_FullTextAdmin");
+    config->set_value("auth", "admin", atoken);
+    Log.info("***");
+    Log.info("*** You do not appear to have any admin tokens in your configuration.");
+    Log.info("*** That's not very useful, so we've created one for you: %s", atoken);
+    Log.info("***");
+  }
+  
+  catch
+  {
+    if((int)config->get_value("auth", "use_simple_security")) 
+    {
+      Log.info("Using simple security, admin auth codes are valid for all indices.");
+      simple_security = 1;
+    }
+  };
 }
 
 
@@ -25,7 +49,38 @@ void shutdown_app()
   exit(0);
 }
 
+int(0..1) check_access(string index, string auth)
+{
+  if(simple_security) return is_admin_user(auth);
+  else return this->index->check_access(index, auth);
+}
+
+string grant_access(string index)
+{
+  if(simple_security) throw(Error.Generic("Simple Security in effect, this method is not available\n"));
+  else return this->index->grant_access(index);
+}
+
+int(0..1) revoke_access(string index, string auth)
+{
+  if(simple_security) throw(Error.Generic("Simple Security in effect, this method is not available\n"));
+  else return this->index->revoke_access(index, auth);
+}
+
 int(0..1) is_admin_user(string auth)
+{
+  if(admin_user_cache[auth]) return 1;
+
+  int rv = low_is_admin_user(auth);
+
+  if(!rv) return 0;
+
+  admin_user_cache[auth] = 1;
+
+  return 1;  
+}
+
+int(0..1) low_is_admin_user(string auth)
 {
   if(config["auth"])
   {

@@ -1,19 +1,13 @@
 inherit .BaseClient;
 
 string type="admin";
-protected string auth;
 
 //!
 static void create(string|void index_url, string authcode)
 {
-  ::create(index_url, 0); // we store auth in name field for now.
-  auth = authcode;
+  ::create(index_url, 0, authcode); // we store auth in name field for now.
 }
 
-protected mixed auth_call(string func, mixed ... args)
-{
-  return call(func, auth, @args);
-}
 
 //!
 int shutdown(int delay)
@@ -28,7 +22,14 @@ string grant_access(string index)
 }
 
 //!
+string exists(string index)
+{
+  return auth_call("exists", index);
+}
+
+//!
 int revoke_access(string index, string authcode)
 {
   return auth_call("revoke_access", index, authcode);
 }
+

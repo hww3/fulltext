@@ -2,8 +2,6 @@ inherit .BaseClient;
 
 string type="search";
 
-Protocols.XMLRPC.Client c;
-
 //! Search the index looking for records whose content matches query.
 //!
 //! @returns

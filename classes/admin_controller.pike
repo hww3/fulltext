@@ -58,3 +58,15 @@ int revoke_access(object id, string auth, string index, string authcode)
   return app->index->revoke_access(index, authcode);
 }
 
+
+// should this be auth protected as well?
+int exists(object id, string auth, string index)
+{
+  if(!app->is_admin_user(auth))
+    throw(Error.Generic("Unauthorized access.\n"));
+
+  CHECKINDEX();
+  return app->index->exists(index);
+}
+
+

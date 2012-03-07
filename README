@@ -1,15 +1,54 @@
-Client Example
+Security
 
+The FullText application supports 2 levels of security: standard and simplified. You 
+may choose either based on your particular needs, however the "standard" model is
+enabled by default.
+
+When using the standard security model, there are administrative authorization codes
+that are used to create new indices as well as to grant or revoke access to a given
+index. The administrative authorization codes are placed in the "auth" section of the 
+application configuration file, and multiple administrative authorization codes may
+be enabled at one time. These codes are read at start up time and the application must
+be shut down in order to flush existing codes.
+
+In order to search or update an index while running in standard security mode, a client
+must provide a valid index authorization code. A given code is specific for a particular
+index and may be obtained by using the administrative client. Similarly, codes may
+be revoked using the administrative client. Codes may be granted and accessed at any
+time, without restarting the FullText application.
+
+When using the simplified mode, during search or update operations, the FullText 
+application simply validates the authorization code provided by a client against its 
+list of administrative authorization codes. This can simplify management of 
+authorization codes for certain scenarios, such as developement or other small scale 
+installations at the expense of giving each user "the keys to the castle".
+
+You may enable the simplified security mechanism by setting the "use_simple_security" 
+flag in the "auth" section of the application configuration file. When running in 
+the simplified mode, the grant and revoke functionality is disabled.
+
+In either case, if a valid administrative access code is not present in the application
+configuration file on startup, one will be created and enabled. A message will be
+displayed in the application log along with the new administration authorization code.
+
+Client Example
 
 string index = "myFTIndex";
 
 // change to '1' if you want to create the index if it doesn't exist.
 int create_if_new = 0;  
-
+string authcode = "1234567890"; // see the security section for details on auth codes.
 
 // if we're running the FullText application on http://localhost:8124, 
 // we can use the default url.
-object u = UpdateClient(0, index, create_if_new);
+object a = AdminClient(0, authcode);
+if(!a->exists(index))
+{
+  a->new(index);
+  werror("new auth code for index: %O\n",
+    authcode = a->grant_access(index));
+}
+object u = UpdateClient(0, index, authcode);
 
 // now, let's add some content
 string content =  "mary had a little lamb, its fleece was white as snow.";
@@ -20,7 +59,7 @@ string handle = "/rhymes/mary"; // a (hopefully) unique identifier for this bit 
 
 // ok, now that we've added, we can search:
 
-object s = SearchClient(0, index);
+object s = SearchClient(0, index, authcode);
 
 foreach(s->search("lamb");; mapping doc)
   werror("found a hit: %O, rating: %O, handle: %O", doc->title, doc->score, doc->handle);
