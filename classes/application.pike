@@ -27,5 +27,16 @@ void shutdown_app()
 
 int(0..1) is_admin_user(string auth)
 {
+  if(config["auth"])
+  {
+    mixed a = config["auth"]["admin"];
+    if(stringp(a) && String.trim_whites(a) == auth) return 1;
+    else if(arrayp(a))
+    {
+      foreach(a;; string v)
+       if(String.trim_whites(v) == auth) return 1;
+    }
+  }
+
   return 0;
 }

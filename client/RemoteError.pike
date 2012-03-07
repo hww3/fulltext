@@ -7,5 +7,7 @@ Protocols.XMLRPC.Fault fault;
 static void create(Protocols.XMLRPC.Fault e)
 {
   fault = e;
-  ::create("Remote Error: " + e->fault_code + "/" + e->fault_string, backtrace()[1..]);
+  ::create("Remote Error: " + e->fault_string);
+  error_backtrace = error_backtrace[..<1];
+  // we really don't need to show the call to create().
 }
