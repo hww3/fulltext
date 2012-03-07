@@ -19,7 +19,42 @@ int shutdown(object id, string auth, int seconds)
   return 1;
 }
 
-int exists(object id, string index)
+int new(object id, string auth, string index)
 {
-  return app->index->exists(index);
+  if(!app->is_admin_user(auth))
+    throw(Error.Generic("Unauthorized access.\n"));
+
+  CHECKINDEX();
+
+  if(app->index->exists(index))
+    throw(Error.Generic("Index " + index + " already exists.\n"));
+
+  return app->index->new(index);
 }
+
+string grant_access(object id, string auth, string index)
+{
+  if(!app->is_admin_user(auth))
+    throw(Error.Generic("Unauthorized access.\n"));
+
+  CHECKINDEX();
+
+  if(!app->index->exists(index))
+    throw(Error.Generic("Index " + index + " does not exist.\n"));
+
+  return app->index->grant_access(index);
+}
+
+int revoke_access(object id, string auth, string index, string authcode)
+{
+  if(!app->is_admin_user(auth))
+    throw(Error.Generic("Unauthorized access.\n"));
+
+  CHECKINDEX();
+
+  if(!app->index->exists(index))
+    throw(Error.Generic("Index " + index + " does not exist.\n"));
+
+  return app->index->revoke_access(index, authcode);
+}
+

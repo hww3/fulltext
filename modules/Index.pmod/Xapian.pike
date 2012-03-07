@@ -53,6 +53,22 @@ void start(mixed config)
   convert::start(config);
 }
 
+string grant_access(string index)
+{
+  return "";
+}
+
+int revoke_access(string index, string auth)
+{
+  return 1;
+}
+
+int check_access(string index, string auth)
+{
+  return 1;
+  return 0;
+}
+
 void set_stopwords(array words)
 {
   stopper = Public.Xapian.SimpleStopper(words);
