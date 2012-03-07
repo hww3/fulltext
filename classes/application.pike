@@ -24,3 +24,8 @@ void shutdown_app()
   destruct(index);
   exit(0);
 }
+
+int(0..1) is_admin_user(string auth)
+{
+  return 0;
+}

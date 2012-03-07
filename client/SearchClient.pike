@@ -22,7 +22,7 @@ array search(string query, int|void limit, int|void start)
 array advanced_search(string query, string search_field, int|void limit, int|void start)
 {
   // for some reason, the logical order of used arguments is reversed.
-  return (array)call("search", query, search_field, limit||25, start||0);
+  return (array)index_call("search", query, search_field, limit||25, start||0);
 
 }
 
@@ -56,10 +56,10 @@ mapping search_with_corrections(string query, int|void limit, int|void start)
 mapping advanced_search_with_corrections(string query, string search_field, int|void limit, int|void start)
 {
   // for some reason, the logical order of used arguments is reversed.
-  return (mapping)call("search_with_corrections", query, search_field, limit||25, start||0);
+  return (mapping)index_call("search_with_corrections", query, search_field, limit||25, start||0);
 }
 
 mapping fetch(int document_id)
 {
-  return call("fetch", document_id);
+  return index_call("fetch", document_id);
 }

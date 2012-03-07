@@ -29,9 +29,14 @@ protected mixed call(string func_name, mixed ... args)
 
   get_client();
 
-  r = c[func_name](name, @args);
+  r = c[func_name](@args);
 
   if(objectp(r))
     throw(.RemoteError(r));
   else return r[0];
+}
+
+protected mixed index_call(string func_name, mixed ... args)
+{
+  return call(func_name, name, @args);
 }

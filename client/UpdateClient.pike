@@ -25,21 +25,21 @@ int exists(string name)
 
 int delete_by_handle(string handle)
 {
-  return call("delete_by_handle", handle);
+  return index_call("delete_by_handle", handle);
 
 }
 
 int delete_by_uuid(string uuid)
 {
-  return call("delete_by_uuid", uuid);
+  return index_call("delete_by_uuid", uuid);
 }
 
 string add(string title, Calendar.Second date, string contents, string handle, string|void excerpt, string mimetype)
 {
-  return call("add", title, date->unix_time(), MIME.encode_base64(contents), handle, excerpt, mimetype);
+  return index_call("add", title, date->unix_time(), MIME.encode_base64(contents), handle, excerpt, mimetype);
 }
 
 string add_from_map(mapping doc)
 {  
-  return call("add_from_map", doc);
+  return index_call("add_from_map", doc);
 }
