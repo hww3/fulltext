@@ -1,6 +1,7 @@
 inherit .BaseClient;
 
 string type="admin";
+protected string auth;
 
 //!
 static void create(string|void index_url, string authcode)
@@ -29,5 +30,5 @@ string grant_access(string index)
 //!
 int revoke_access(string index, string authcode)
 {
-  return auth_call("grant_access", index, authcode);
+  return auth_call("revoke_access", index, authcode);
 }
