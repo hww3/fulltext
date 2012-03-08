@@ -3,6 +3,6 @@
 
 <ul>
 <%foreach var="$indices" val="index"%>
-<li><%$index.name%> : <%$index.doccount%> / <%$index.maxdoc%>
+<li><%action_link action="info" args="$index.name"%><%$index.name%></a> : <%$index.doccount%> / <%$index.maxdoc%>
 <%end%>
 </ul>

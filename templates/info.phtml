@@ -1,0 +1,32 @@
+<h1>Fins/Xapian FullText Server</h1>
+<b>Index: <%$index.name%></b>
+
+<table>
+<tr>
+<th>
+Number of Documents
+</th>
+<th>
+Highest Document ID
+</th>
+<th>
+Average Document Length
+</th>
+<th>
+Has Positional Info?
+</th>
+<tr>
+<td>
+  <%$index.doccount%>
+</td>
+<td>
+  <%$index.maxdoc%>
+</td>
+<td>
+  <%$index.avlength%>
+</td>
+<td>
+  <%boolean var="$index.hasposition"%>
+</td>
+</tr>
+<table>
