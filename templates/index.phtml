@@ -1,0 +1,6 @@
+<h1>Fins/Xapian FullText Server</h1>
+<b>Active Indices:</b>
+
+<%foreach var="$indices" val="index"%>
+<ul><%$index.name%> : <%$index.doccount%> / <%$index.maxdoc%>
+<%end%>
