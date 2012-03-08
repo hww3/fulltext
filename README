@@ -1,3 +1,24 @@
+Getting Started
+
+You should have the following installed:
+
+Pike 7.8
+Fins framework
+Xapian full text library
+Public.Xapian module
+
+To start the server, first look at the settings in the config/dev.cfg file to
+make sure that everything looks good. Once you've done that, set the FINS_HOME
+environment variable so that it points to the location you've installed the 
+Fins framework. Once you've done that, you should be able to run the start 
+script, which is located in the bin/ directory:
+
+FINS_HOME=/path/to/fins
+export FINS_HOME
+cd /path/to/fulltext
+bin/start.sh 
+ (or "bin/start.sh -d", optionally once you've verified everything's working)
+
 FTAdmin
 
 Fins/Xapian provides a script that performs certain administrative functions. This

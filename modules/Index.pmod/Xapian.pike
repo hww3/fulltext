@@ -27,6 +27,7 @@ static void create(string loc, mixed config)
   if(!f || !f->isdir)
   {
     Log.critical("FullText directory %s does not exist, or is a plain file.", loc);
+    Log.critical("Please create this directory, or change the location in the configuration file.",);
     throw(Error.Generic("FullText directory " + loc + " does not exist, or is a plain file.\n"));
   }
   indexloc = loc;
