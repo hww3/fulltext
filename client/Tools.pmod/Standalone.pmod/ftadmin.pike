@@ -7,6 +7,8 @@ constant description = "Administrative Tool for Fins/Xapian FullText.";
 #endif
 
 string auth;
+int port;
+object client;
 
 int main(int argc, array argv)
 {
@@ -58,6 +60,11 @@ int main(int argc, array argv)
    if(catch(auth = config->get_value("auth", "admin")))
      ERROR("No admin authentication code set in configuration file. Have you not started the app yet?\nConfiguration file=" + configfile);
 
+   if(catch(port = (int)config->get_value("web", "port")))
+     ERROR("No listen port set in configuration file. Please update your configuration file.\nConfiguration file=" + configfile);
+
+   client = FullText.AdminClient("http://127.0.0.1:" + port, auth);
+
    return meth(@newargs);
 }
 
@@ -65,12 +72,18 @@ int new_index(string index)
 {
   if(!index)
   ERROR("No index name specified.")
+  int rv = client->new(index);
+  if(!rv)
+    write("Index %O created successfully.\n", index);
+  return rv;
 }
 
 int grant_access(string index)
 {
   if(!index)
   ERROR("No index name specified.")
+  string key = client->grant_access(index);
+  werror("Authorization Key for %O is %O\n", index, key);
 }
 
 int revoke_access(string index, string auth)
@@ -79,8 +92,20 @@ int revoke_access(string index, string auth)
   ERROR("No index name specified.")
   if(!auth)
   ERROR("No authorization code specified.")
+  int res = client->revoke_access(index, auth);
+
+  if(res) 
+    write("Access revoked successfully.\n");
+  else
+    werror("Unable to revoke access for key %O on index %O. Is this information correct?\n", auth, index);
+
+  return res;
 }
 
 int shutdown(string|void seconds)
 {
+  if(!auth)
+  ERROR("No authorization code specified.")
+  int res = client->shutdown(seconds);
+  return res;
 }

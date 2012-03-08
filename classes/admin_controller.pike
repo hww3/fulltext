@@ -29,7 +29,7 @@ int new(object id, string auth, string index)
   if(app->index->exists(index))
     throw(Error.Generic("Index " + index + " already exists.\n"));
 
-  return app->index->new(index);
+  return (int)app->index->new(index);
 }
 
 string grant_access(object id, string auth, string index)

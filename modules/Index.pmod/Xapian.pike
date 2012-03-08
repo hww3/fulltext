@@ -334,7 +334,7 @@ int delete_by_uuid(string index, string uuid)
   return 1;
 }
 
-void new(string index)
+int new(string index)
 {
   if(!catch(make_indexloc(index)))
   {
@@ -344,7 +344,7 @@ void new(string index)
   object xwriter=Public.Xapian.WriteableDatabase(make_indexloc(index, 1), Public.Xapian.DB_CREATE);
 
   xwriter = 0;
-
+  return 0;
 }
 
 string make_excerpt(string content)

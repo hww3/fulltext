@@ -12,24 +12,29 @@ static void create(string|void index_url, string authcode)
 //!
 int shutdown(int delay)
 {
-  return auth_call("shutdown", delay);
+  return (int)auth_call("shutdown", delay);
 }
 
 //!
 string grant_access(string index)
 {
-  return auth_call("grant_access", index);
+  return (string)auth_call("grant_access", index);
 }
 
 //!
-string exists(string index)
+int exists(string index)
 {
-  return auth_call("exists", index);
+  return (int)auth_call("exists", index);
 }
 
 //!
 int revoke_access(string index, string authcode)
 {
-  return auth_call("revoke_access", index, authcode);
+  return (int)auth_call("revoke_access", index, authcode);
 }
 
+//!
+int new(string index)
+{
+  return (int)auth_call("new", index);
+}
