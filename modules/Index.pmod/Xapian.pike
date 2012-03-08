@@ -441,8 +441,10 @@ void add_contents(object writer, object doc, string contents, int|void no_postin
   tg->set_flags(Public.Xapian.TermGenerator.FLAG_SPELLING, 0);
 
   if(no_postings)
-   tg->index_text_without_positions(contents, 1, "");
+//   tg->index_text_without_positions(contents, 1, "");
+   tg->index_text(contents, 1, "");
   else
+//   tg->index_text_without_positions(contents, 1, "");
    tg->index_text(contents, 1, "");
   
 }

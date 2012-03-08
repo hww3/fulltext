@@ -4,7 +4,7 @@ import Tools.Logging;
 constant __uses_session = 0;
 
 #define CHECKINDEX() if(!index || index=="0") throw(Error.Generic("index not specified!\n"))
-#define CHECKAUTH() if(!auth || app->check_access(index, auth)) throw(Error.Generic("authorization failed!\n"))
+#define CHECKAUTH() if(!auth || !app->check_access(index, auth)) throw(Error.Generic("authorization failed!\n"))
 
 inherit XMLRPCController;
 

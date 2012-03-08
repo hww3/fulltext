@@ -26,7 +26,17 @@ Has Positional Info?
   <%$index.avlength%>
 </td>
 <td>
-  <%boolean var="$index.hasposition"%>
+  <%boolean var="$index.positions"%>
 </td>
 </tr>
 <table>
+<!--
+<p>
+<%action_form action="info" args="$index.name"%>
+Term Count: <input type="term" length="40"> <input type="submit">
+<%if data->term %> 
+<p>
+<b><%$index.termcount%></b> documents match the term <b>"<%$index.term%>"..
+<%endif%>
+</form>
+-->

@@ -55,6 +55,13 @@ void info(object id, object response, mixed ... args)
   i->avlength = r->get_avlength();
   i->positions = r->has_positions();
   t->add("index", i);
+/*
+if(id->variables->term)
+{
+  t->add("termcount", r->get_termfreq(id->variables->term));
+  t->add("term", id->variables->term);
+}
+*/
 
   response->set_view(t);
 }
