@@ -1,3 +1,23 @@
+FTAdmin
+
+Fins/Xapian provides a script that performs certain administrative functions. This
+script is located within the bin directory and performs the following functions:
+
+Create a new index:
+bin/ftadmin.sh new indexname 
+
+Grant access to an index (prints out the newly granted auth code):
+bin/ftadmin.sh grant indexname
+
+Revoke access to an index for an auth code:
+bin/ftadmin.sh grant indexname authcode
+
+Shut down the server (optionally after a delay):
+bin/ftadmin.sh shutdown [seconds] 
+
+Note that in order for the script to work, the server must be running on the local 
+host.
+
 Security
 
 The FullText application supports 2 levels of security: standard and simplified. You 
@@ -33,6 +53,7 @@ displayed in the application log along with the new administration authorization
 
 Client Example
 
+import FullText;
 string index = "myFTIndex";
 
 // change to '1' if you want to create the index if it doesn't exist.

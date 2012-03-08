@@ -1,3 +1,5 @@
+- Added "ftadmin" script for managing server, indices and access
+- Added "startup" script
 - Added max CPU limit for content converters (config section "limits" 
      -> setting "maxcpu")
 - Added format conversion
