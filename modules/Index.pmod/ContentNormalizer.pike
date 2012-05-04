@@ -86,11 +86,11 @@ Log.debug(sprintf("allowed: %O, denied: %O\n", allowed_types, denied_types)-"\n"
 
    foreach(indices(denied_types), string t)
    {
-     if(glob(t, type)) return 0;
+     if(glob(t, type||"unknown/unknown")) return 0;
    }
    foreach(indices(allowed_types), string t)
    {
-     if(glob(t, type)) return 1;
+     if(glob(t, type||"unknown/unknown")) return 1;
    }
 
    // if we specify any allowed types, only permit those on the list.

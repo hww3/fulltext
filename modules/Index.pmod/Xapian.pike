@@ -361,9 +361,9 @@ string make_excerpt(string content)
 string add(string index, mapping doc)
 {
  Log.debug("Index.Xapian.add()");
+ Log.debug("Index.Xapian.add(): checking for permission, type=%O.", doc->mimetype);
  if(!allowed_type(doc->mimetype))
  {
-   Log.debug("Index.Xapian.add(): checking for permission.");
    Log.warn("Not indexing prohibited type " + doc->mimetype);
    return 0;
  }
