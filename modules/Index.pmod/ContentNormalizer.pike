@@ -151,19 +151,19 @@ void setup_converters(mixed config)
 
     foreach(mt;; string mimetype)
     {
-      werror("Configuring converter for " + mimetype + "\n");
+      logger->debug("Configuring converter for " + mimetype);
       if(c->type=="filter")
         converters[mimetype]=FTSupport.Conversion.Filter(c->command, limits);
       else if(c->type=="converter")
         converters[mimetype]=FTSupport.Conversion.Converter(c->command, config["indexer"]->temp, limits);
-      else werror("unknown converter type %O for mime type %O\n", c->type, mimetype);
+      else logger->warn("unknown converter type %O for mime type %O", c->type, mimetype);
     }
   }
 
-  werror("Configuring internal converter for text/plain\n");
+  logger->debug("Configuring internal converter for text/plain");
   converters["text/plain"]=FTSupport.Conversion.PikeFilter(lambda(string d){ return d;});
 
-  werror("Configuring internal converter for text/html\n");
+  logger->debug("Configuring internal converter for text/html");
   converters["text/html"]=FTSupport.Conversion.PikeFilter(lambda(string d){ return d;});
 
 }
