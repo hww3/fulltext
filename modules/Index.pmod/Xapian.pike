@@ -1,6 +1,6 @@
-import Tools.Logging;
-
 inherit .ContentNormalizer : convert;
+
+object logger = Tools.Logging.get_logger("fulltext.xapian");
 
 constant qp = Public.Xapian.QueryParser;
 int flags = qp.FLAG_PHRASE|qp.FLAG_BOOLEAN|qp.FLAG_LOVEHATE|qp.FLAG_SPELLING_CORRECTION;
@@ -26,8 +26,8 @@ static void create(string loc, mixed config)
   Stdio.Stat f = file_stat(loc);
   if(!f || !f->isdir)
   {
-    Log.critical("FullText directory %s does not exist, or is a plain file.", loc);
-    Log.critical("Please create this directory, or change the location in the configuration file.",);
+    logger->critical("FullText directory %s does not exist, or is a plain file.", loc);
+    logger->critical("Please create this directory, or change the location in the configuration file.",);
     throw(Error.Generic("FullText directory " + loc + " does not exist, or is a plain file.\n"));
   }
   indexloc = loc;
@@ -174,7 +174,7 @@ object get_writer(string index)
 {
   if(!writers[index])
   {
-    Log.info("Creating new writer object for " + index + ".");
+    logger->info("Creating new writer object for " + index + ".");
     writers[index]=Public.Xapian.WriteableDatabase(make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
   }
   return writers[index];
@@ -184,7 +184,7 @@ object get_reader(string index)
 {
   if(!readers[index])
   {
-    Log.info("Creating new reader object for " + index + ".");
+    logger->info("Creating new reader object for " + index + ".");
     readers[index] = Public.Xapian.Database(make_indexloc(index));
   }
   return readers[index];
@@ -217,7 +217,7 @@ static string make_indexloc(string index, int|void force)
 
 object doSearch(string index, string query, int|void max, int|void start)
 {
-  Log.debug("doSearch");
+  logger->debug("doSearch");
  // object sorter;
   if(!max) max = 100;
 
@@ -225,17 +225,17 @@ object doSearch(string index, string query, int|void max, int|void start)
 
   object qry = q->parse_query(query, flags);
 
-  Log.debug("have query");
+  logger->debug("have query");
   object ftdb = get_reader(index);
   object e = Public.Xapian.Enquire(ftdb);
   e->set_query(qry, 0);
-  Log.debug("getting results.");
+  logger->debug("getting results.");
   return e->get_mset(start, max, max);
 }
 
 mapping doFetch(string index, int docid)
 {
-  Log.debug("doFetch");
+  logger->debug("doFetch");
 
   object ftdb = get_reader(index);
 
@@ -295,13 +295,13 @@ mapping fetch(string index, int docid)
 array search(string index, string query, string field, int|void max, int|void start)
 {
   array retval = ({});
-Log.debug("search");
+  logger->debug("search");
   mixed e;
   object results;
 
 if(e = catch( results = doSearch(index, query, max, start)))
-  Log.exception("error while running query", e);
-  Log.debug("%O", results);
+  logger->exception("error while running query", e);
+  logger->debug("%O", results);
 e = catch{
   foreach(results;; object i)
   {
@@ -318,7 +318,7 @@ e = catch{
                 });
   }
 };
-if(e) Log.exception("an error occured while generating the results", e);
+if(e) logger->exception("an error occured while generating the results", e);
   return retval;
 
 }
@@ -341,7 +341,7 @@ int new(string index)
   {
     throw(Error.Generic("Index " + index + " already exists.\n"));
   }
-  Log.info("Creating new index " + index + ".");
+  logger->info("Creating new index " + index + ".");
   object xwriter=Public.Xapian.WriteableDatabase(make_indexloc(index, 1), Public.Xapian.DB_CREATE);
 
   xwriter = 0;
@@ -360,21 +360,21 @@ string make_excerpt(string content)
 //!  a string containing the uuid of the document in the index.
 string add(string index, mapping doc)
 {
- Log.debug("Index.Xapian.add()");
- Log.debug("Index.Xapian.add(): checking for permission, type=%O.", doc->mimetype);
+ logger->debug("Index.Xapian.add()");
+ logger->debug("Index.Xapian.add(): checking for permission, type=%O.", doc->mimetype);
  if(!allowed_type(doc->mimetype))
  {
-   Log.warn("Not indexing prohibited type " + doc->mimetype);
+   logger->warn("Not indexing prohibited type " + doc->mimetype);
    return 0;
  }
  else
-   Log.debug("Index.Xapian.add(): able to add mimetype.");
+   logger->debug("Index.Xapian.add(): able to add mimetype.");
 
  string id = (string)Standards.UUID.make_version4();
  object d;
  string content;
 
- Log.debug("Index.Xapian.add(): creating Document object");
+ logger->debug("Index.Xapian.add(): creating Document object");
 
  d=Public.Xapian.Document();
 
@@ -415,7 +415,7 @@ string add(string index, mapping doc)
 
 // werror("adding %O\n", d);
 
- Log.info("adding document with %d terms.", sizeof(terms));
+ logger->info("adding document with %d terms.", sizeof(terms));
  writer->add_document(d);
 
  get_reader(index)->reopen();

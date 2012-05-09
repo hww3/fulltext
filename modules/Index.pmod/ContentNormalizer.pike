@@ -1,5 +1,4 @@
-import Tools.Logging;
-
+object logger = Tools.Logging.get_logger("fulltext.normalizer");
 mapping converters=([]);
 multiset allowed_types=(<>);
 multiset denied_types=(<>);
@@ -21,7 +20,7 @@ void set_limits(mixed config)
     mixed m = config["limits"];
     if(m->maxcpu)
     {
-      Log.info("setting maximum converter cpu time to %d seconds.", (int)m->maxcpu);
+      logger->info("setting maximum converter cpu time to %d seconds.", (int)m->maxcpu);
       limits->cpu = (int)m->maxcpu;
     }
   }
@@ -52,15 +51,15 @@ void setup_type_permits(mixed config)
 
 string prepare_content(string data, string type)
 {
-//  Log.debug("prepare_content(%O, %O)", data, type);
+//  logger->debug("prepare_content(%O, %O)", data, type);
    if(converters[type])
   {
-    Log.info("performing conversion for data of type " + type);
+    logger->info("performing conversion for data of type " + type);
     data=converters[type]->convert(data);
 
     if(!data || !strlen(data))
     {
-      Log.info("  ...converter returned no data");
+      logger->info("  ...converter returned no data");
     }
   }
 
@@ -75,14 +74,14 @@ string prepare_content(string data, string type)
     stripper->feed(data);
     data=stripper->read();
 
-  Log.debug("prepare_content(%O, %O): finished", data, type);
+  logger->debug("prepare_content(%O, %O): finished", data, type);
 
   return data;
 }
 
 int allowed_type(string type)
 {
-Log.debug(sprintf("allowed: %O, denied: %O\n", allowed_types, denied_types)-"\n");
+   logger->debug(sprintf("allowed: %O, denied: %O\n", allowed_types, denied_types)-"\n");
 
    foreach(indices(denied_types), string t)
    {
@@ -108,7 +107,7 @@ mixed strip_tag(Parser.HTML p, string t)
 
 mixed continue_tag(Parser.HTML p, mapping args, string t)
 {
-   werror("continuing on " + t + "\n");
+   //werror("continuing on " + t + "\n");
   return 0;
 }
     
