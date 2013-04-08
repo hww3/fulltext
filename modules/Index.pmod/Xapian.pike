@@ -380,6 +380,8 @@ string add(string index, mapping doc)
 
  content = prepare_content(doc->contents, doc->mimetype);
 
+ logger->debug("Have normalized content: %O.", content);
+
 //werror("content: %O\n", content);
 //werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
 

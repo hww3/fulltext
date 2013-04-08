@@ -55,6 +55,7 @@ import Tools.Logging;
     //!
     string convert(string data)
     {
+       int rv;
        string ret="";
        i++;
        string t=MIME.encode_base64(Crypto.MD5()->update(data + i)->update((string)time())->digest());
@@ -87,12 +88,14 @@ import Tools.Logging;
          while(1);
  	 string err = e->read(1024,1);
          if(sizeof(err))
-           Log.debug("converter reported possible errors: %s", err);
+           Log.warn("converter reported possible errors: %s", err);
          do
          {
-           p->wait();
+           rv = p->wait();
+           Log.info("Converter returned status code %d\n", rv);           
          }
          while(p && p->status()==0);
+         
 
        }
 

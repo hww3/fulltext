@@ -55,8 +55,11 @@ string prepare_content(string data, string type)
    if(converters[type])
   {
     logger->info("performing conversion for data of type " + type);
-    data=converters[type]->convert(data);
-
+    mixed e = catch(data=converters[type]->convert(data));
+    if(e)
+    {
+      logger->exception("Exception:", Error.mkerror(e));
+    }
     if(!data || !strlen(data))
     {
       logger->info("  ...converter returned no data");
