@@ -140,8 +140,15 @@ mixed set_title(Parser.HTML p, mapping args, string content)
 
 void setup_converters(mixed config)
 {
+  array sections = ({});
+
   setup_html_converter(config);
-  foreach(glob("transform_*", config->get_sections()); int x; string t)
+  if(objectp(config)) 
+    sections = config->get_sections();
+  else if(mappingp(config)) 
+    sections = indices(config);
+
+  foreach(glob("transform_*", sections); int x; string t)
   {
     mapping c = config[t];
     array mt;
