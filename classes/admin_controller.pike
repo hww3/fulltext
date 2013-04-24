@@ -42,7 +42,7 @@ string grant_access(object id, string auth, string index)
   if(!app->index->exists(index))
     throw(Error.Generic("Index " + index + " does not exist.\n"));
 
-  return app->index->grant_access(index);
+  return app->security->grant_access(index);
 }
 
 int revoke_access(object id, string auth, string index, string authcode)
@@ -55,7 +55,7 @@ int revoke_access(object id, string auth, string index, string authcode)
   if(!app->index->exists(index))
     throw(Error.Generic("Index " + index + " does not exist.\n"));
 
-  return app->index->revoke_access(index, authcode);
+  return app->security->revoke_access(index, authcode);
 }
 
 
