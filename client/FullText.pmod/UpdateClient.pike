@@ -38,13 +38,19 @@ int delete_by_uuid(string uuid)
   return index_call("delete_by_uuid", uuid);
 }
 
+//! add a document to the index synchronously.
 //!
+//! @returns
+//!  the uuid for the document added to the index.
 string add(string title, Calendar.Second date, string contents, string handle, string|void excerpt, string mimetype)
 {
   return index_call("add", title, date->unix_time(), MIME.encode_base64(contents), handle, excerpt, mimetype);
 }
 
+//! add a document to the index synchronously using a mapping.
 //!
+//! @returns
+//!  the uuid for the document added to the index.
 string add_from_map(mapping doc)
 {  
   return index_call("add_from_map", doc);
