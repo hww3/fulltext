@@ -1,3 +1,7 @@
+#if !constant(Public.Xapian)
+#error No Xapian support present.
+#endif
+
 inherit .ContentNormalizer : convert;
 
 object logger = Tools.Logging.get_logger("fulltext.xapian");
