@@ -309,14 +309,18 @@ string add(string index, mapping doc)
    logger->debug("Index.Xapian.add(): able to add mimetype.");
 
  string id = (string)Standards.UUID.make_version4();
+
  object d;
  string content;
+ mapping extracted_metadata = ([]);
 
  logger->debug("Index.Xapian.add(): creating Document object");
 
  d=Public.Xapian.Document();
 
- content = prepare_content(doc->contents, doc->mimetype);
+ content = prepare_content(doc->contents, doc->mimetype, extracted_metadata);
+
+  doc = extracted_metadata + doc;
 
  logger->debug("Have normalized content: %O.", content);
 

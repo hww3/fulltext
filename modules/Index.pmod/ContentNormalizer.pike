@@ -49,13 +49,13 @@ void setup_type_permits(mixed config)
   }
 }
 
-string prepare_content(string data, string type)
+string prepare_content(string data, string type, mapping|void store)
 {
 //  logger->debug("prepare_content(%O, %O)", data, type);
    if(converters[type])
   {
     logger->info("performing conversion for data of type " + type);
-    mixed e = catch(data=converters[type]->convert(data));
+    mixed e = catch(data=converters[type]->convert(data, store||([])));
     if(e)
     {
       logger->exception("Exception:", Error.mkerror(e));
@@ -65,17 +65,20 @@ string prepare_content(string data, string type)
       logger->info("  ...converter returned no data");
     }
   }
+  // TODO we should complain if we can't get from the original type to a 
+  //   reasonable text format (plain or html).
 
-
+   object lparser, lstripper;
    // clear the parsers
-    parser=parser->clone();
-    stripper=stripper->clone();
+    lparser=parser->clone();
+    lstripper=stripper->clone();
 
-     parser->feed(data);
-    data=parser->read();
+    lparser->set_extra(store||([]));
+     lparser->feed(data);
+    data=lparser->read();
 
-    stripper->feed(data);
-    data=stripper->read();
+    lstripper->feed(data);
+    data=lstripper->read();
 
   logger->debug("prepare_content(%O, %O): finished", data, type);
 
@@ -133,8 +136,9 @@ void setup_html_converter(mixed config)
   stripper->_set_tag_callback(strip_tag);
 }
 
-mixed set_title(Parser.HTML p, mapping args, string content)
+mixed set_title(Parser.HTML p, mapping args, string content, mapping doc)
 {
+  doc->title = content;
   return "";
 }
 
