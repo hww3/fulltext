@@ -300,7 +300,7 @@ string make_excerpt(string content)
 //!
 //! @returns
 //!  a string containing the uuid of the document in the index.
-string add(string index, mapping doc)
+string add(string index, Index.Document doc)
 {
  logger->debug("Index.Xapian.add()");
  logger->debug("Index.Xapian.add(): checking for permission, type=%O.", doc->mimetype);
@@ -312,30 +312,30 @@ string add(string index, mapping doc)
  else
    logger->debug("Index.Xapian.add(): able to add mimetype.");
 
- string id = (string)Standards.UUID.make_version4();
-
+ doc->uuid = (string)Standards.UUID.make_version4();
+ 
  object d;
  string content;
- mapping extracted_metadata = ([]);
 
  logger->debug("Index.Xapian.add(): creating Document object");
 
  d=Public.Xapian.Document();
 
- content = prepare_content(doc->contents, doc->mimetype, extracted_metadata);
+ content = prepare_content(doc);
 
-  doc = extracted_metadata + doc;
+ if(!doc->excerpt)
+   doc->excerpt = (make_excerpt(content)||"");
 
  logger->debug("Have normalized content: %O.", content);
 
 //werror("content: %O\n", content);
 //werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
 
- d->set_data(doc->excerpt||make_excerpt(content)||"");
+ d->set_data(doc->excerpt);
 
 // Log.debug("added data");
 
- d->add_value(0, id);
+ d->add_value(0, doc->uuid);
 // Log.debug("added value 0");
  d->add_value(1, doc->title || "");
 // Log.debug("added value 1");
@@ -348,7 +348,7 @@ string add(string index, mapping doc)
  d->add_value(5, doc->keywords?(doc->keywords*", "):""); 
 // Log.debug("getting ready to add terms");
 
- array terms = ({ doc->handle, doc->title, id });
+ array terms = ({ doc->handle, doc->title, doc->uuid });
 
  if(doc->keywords) terms += doc->keywords;
 
@@ -359,12 +359,14 @@ string add(string index, mapping doc)
  add_contents(writer, d, content);
 
  d->add_term("H" + string_to_utf8(doc->handle), 1);
- d->add_term("U" + string_to_utf8(id), 1);
+ d->add_term("U" + string_to_utf8(doc->uuid), 1);
 
 // werror("adding %O\n", d);
 
  logger->info("adding document with %d terms.", sizeof(terms));
- writer->add_document(d);
+ mixed id = writer->add_document(d);
+ doc->docid = id;
+ doc->index = index;
 
  get_reader(index)->reopen();
  kill_writer(index);

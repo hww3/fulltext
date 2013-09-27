@@ -49,13 +49,15 @@ void setup_type_permits(mixed config)
   }
 }
 
-string prepare_content(string data, string type, mapping|void store)
+string prepare_content(Index.Document doc)
 {
+  string data = doc->content;
+  string type = doc->mimetype;
 //  logger->debug("prepare_content(%O, %O)", data, type);
    if(converters[type])
   {
     logger->info("performing conversion for data of type " + type);
-    mixed e = catch(data=converters[type]->convert(data, store||([])));
+    mixed e = catch(data=converters[type]->convert(data, doc));
     if(e)
     {
       logger->exception("Exception:", Error.mkerror(e));
@@ -73,7 +75,7 @@ string prepare_content(string data, string type, mapping|void store)
     lparser=parser->clone();
     lstripper=stripper->clone();
 
-    lparser->set_extra(store||([]));
+    lparser->set_extra(doc);
      lparser->feed(data);
     data=lparser->read();
 

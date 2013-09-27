@@ -16,11 +16,11 @@ string add(object id, string auth, string index, string title, int date, string 
   string uuid;
   object dob = Calendar.Gregorian.Second(date);
   Log.info("Adding %s (date %O) to index %s", title, dob, index);
-  uuid = app->index->add(index, (["title": title, "date": dob, 
+  uuid = app->index->add(index, Index.Document((["title": title, "date": dob, 
                            "contents": MIME.decode_base64(contents),
                            "excerpt": excerpt,
                            "handle": handle,
-                           "mimetype": mimetype]));
+                           "mimetype": mimetype])));
 
   return uuid;
 }
@@ -34,7 +34,7 @@ string add_from_map(object id, string auth, string index, mapping doc)
   doc->date = Calendar.Gregorian.Second(doc->date);
   doc->contents = MIME.decode_base64(doc->contents);
   Log.info("Adding %s (date %O) to index %s", doc->title, doc->date, index);
-  uuid = app->index->add(index, doc);
+  uuid = app->index->add(index, Index.Document(doc));
 
   return uuid;
 }
