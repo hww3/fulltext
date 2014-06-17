@@ -328,6 +328,8 @@ string add(string index, Index.Document doc)
 
  logger->debug("Have normalized content: %O.", content);
 
+ logger->debug("Have normalized content: %O.", content);
+
 //werror("content: %O\n", content);
 //werror("doc->excerpt: %O, %O\n", doc->excerpt, make_excerpt(content));
 
