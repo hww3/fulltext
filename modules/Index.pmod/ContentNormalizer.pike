@@ -57,7 +57,7 @@ string prepare_content(Index.Document doc)
    if(converters[type])
   {
     logger->info("performing conversion for data of type " + type);
-    mixed e = catch(data=converters[type]->convert(data, doc));
+    mixed e = catch(data=converters[type]->convert(data));
     if(e)
     {
       logger->exception("Exception:", Error.mkerror(e));
