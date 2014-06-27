@@ -32,6 +32,7 @@ static void create(string loc, mixed config)
     logger->critical("Please create this directory, or change the location in the configuration file.",);
     throw(Error.Generic("FullText directory " + loc + " does not exist, or is a plain file.\n"));
   }
+  logger->info("FullText directory located at %s.", loc);
   indexloc = loc;
 
   start(config);

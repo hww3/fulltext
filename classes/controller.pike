@@ -7,12 +7,16 @@ object update;
 object admin;
 object search;
 
+void start(object a)
+{
+  update = load_controller("update_controller");
+  search = load_controller("search_controller");
+  admin = load_controller("admin_controller");
+}
+
 static void create(Fins.Application a)
 {
   ::create(a);
-  update = ((program)"update_controller")(a);
-  search = ((program)"search_controller")(a);
-  admin = ((program)"admin_controller")(a);
 }
 
 void index(object id, object response, mixed ... args)
