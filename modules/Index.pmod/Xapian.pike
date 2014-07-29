@@ -3,13 +3,12 @@
 #endif
 
 inherit .ContentNormalizer : convert;
-
+inherit .Common : common;
 object logger = Tools.Logging.get_logger("fulltext.xapian");
 
 constant qp = Public.Xapian.QueryParser;
 int flags = qp.FLAG_PHRASE|qp.FLAG_BOOLEAN|qp.FLAG_LOVEHATE|qp.FLAG_SPELLING_CORRECTION;
 
-string indexloc;
 mapping writers = ([]);
 mapping readers = ([]);
 
@@ -118,7 +117,7 @@ object get_writer(string index)
   if(!writers[index])
   {
     logger->info("Creating new writer object for " + index + ".");
-    writers[index]=Public.Xapian.WriteableDatabase(Index.make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
+    writers[index]=Public.Xapian.WriteableDatabase(make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
   }
   return writers[index];
 }
@@ -128,7 +127,7 @@ object get_reader(string index)
   if(!readers[index])
   {
     logger->info("Creating new reader object for " + index + ".");
-    readers[index] = Public.Xapian.Database(Index.make_indexloc(index));
+    readers[index] = Public.Xapian.Database(make_indexloc(index));
   }
   return readers[index];
 }
@@ -255,12 +254,12 @@ int delete_by_uuid(string index, string uuid)
 
 int new(string index)
 {
-  if(!catch(Index.make_indexloc(index)))
+  if(!catch(make_indexloc(index)))
   {
     throw(Error.Generic("Index " + index + " already exists.\n"));
   }
   logger->info("Creating new index " + index + ".");
-  object xwriter=Public.Xapian.WriteableDatabase(Index.make_indexloc(index, 1), Public.Xapian.DB_CREATE);
+  object xwriter=Public.Xapian.WriteableDatabase(make_indexloc(index, 1), Public.Xapian.DB_CREATE);
 
   xwriter = 0;
   return 0;

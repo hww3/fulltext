@@ -1,3 +1,4 @@
+string indexloc;
 
 static string make_indexloc(string index, int|void force)
 {
