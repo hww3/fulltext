@@ -9,4 +9,4 @@
   fi
 
   cd `dirname $0`/../..
-  exec pike $PIKE_ARGS -x fins start FullText $*
+  exec pike $PIKE_ARGS -x fins start -a FullText $*

@@ -118,7 +118,7 @@ object get_writer(string index)
   if(!writers[index])
   {
     logger->info("Creating new writer object for " + index + ".");
-    writers[index]=Public.Xapian.WriteableDatabase(make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
+    writers[index]=Public.Xapian.WriteableDatabase(Index.make_indexloc(index), Public.Xapian.DB_CREATE_OR_OPEN);
   }
   return writers[index];
 }
@@ -128,34 +128,9 @@ object get_reader(string index)
   if(!readers[index])
   {
     logger->info("Creating new reader object for " + index + ".");
-    readers[index] = Public.Xapian.Database(make_indexloc(index));
+    readers[index] = Public.Xapian.Database(Index.make_indexloc(index));
   }
   return readers[index];
-}
-
-static string make_indexloc(string index, int|void force)
-{
-  string loc;
-
-  index = replace(index, "/", "_");
-
-  loc = Stdio.append_path(indexloc, index);
-
-  if(!file_stat(loc)) // the requested index directory doesn't exist.
-  {
-
-    if(!force)
-    {
-      throw(Error.Generic("index " + index + " does not exist.\n"));
-    }
-
-    else // we're forcing the creation.
-    {
-       mkdir(loc);
-    }
-  }
-
-  return loc;
 }
 
 object doSearch(string index, string query, int|void max, int|void start)
@@ -280,12 +255,12 @@ int delete_by_uuid(string index, string uuid)
 
 int new(string index)
 {
-  if(!catch(make_indexloc(index)))
+  if(!catch(Index.make_indexloc(index)))
   {
     throw(Error.Generic("Index " + index + " already exists.\n"));
   }
   logger->info("Creating new index " + index + ".");
-  object xwriter=Public.Xapian.WriteableDatabase(make_indexloc(index, 1), Public.Xapian.DB_CREATE);
+  object xwriter=Public.Xapian.WriteableDatabase(Index.make_indexloc(index, 1), Public.Xapian.DB_CREATE);
 
   xwriter = 0;
   return 0;

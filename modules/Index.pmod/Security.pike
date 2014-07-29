@@ -2,6 +2,8 @@ object logger = Tools.Logging.get_logger("fulltext.security");
 
 Tools.Mapping.MappingCache authcache = Tools.Mapping.MappingCache(300);
 
+string indexloc;
+
 static void create(string loc)
 {
   Stdio.Stat f = file_stat(loc);
@@ -16,7 +18,7 @@ static void create(string loc)
 
 string get_authfile(string index)
 {
-  return combine_path(make_indexloc(index), "ftauth");
+  return combine_path(Index.make_indexloc(index), "ftauth");
 }
 
 mixed get_auth(string index)
