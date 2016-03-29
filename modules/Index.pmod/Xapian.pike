@@ -22,7 +22,7 @@ array stopwords=({"me", "my", "this", "the", "a", "an", "those",
 object stopper = Public.Xapian.SimpleStopper(stopwords);
 object stemmer = Public.Xapian.Stem("english");
 
-static void create(string loc, mixed config)
+protected void create(string loc, mixed config)
 {
   Stdio.Stat f = file_stat(loc);
   if(!f || !f->isdir)
@@ -75,7 +75,7 @@ valid langauges (from Xapian):
     finnish (fi)
     french (fr)
     german (de)
-    german2 - Normalises umlauts and ß
+    german2 - Normalises umlauts and ï¿½
     hungarian (hu)
     italian (it)
     kraaij_pohlmann - A different Dutch stemmer
@@ -376,7 +376,7 @@ void add_contents(object writer, object doc, string contents, int|void no_postin
   
 }
 
-static void destroy()
+protected void destroy()
 {
   foreach(readers;; object reader)
     reader = 0;

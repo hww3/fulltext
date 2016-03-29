@@ -14,7 +14,7 @@ void start(object a)
   admin = load_controller("admin_controller");
 }
 
-static void create(Fins.Application a)
+protected void create(Fins.Application a)
 {
   ::create(a);
 }

@@ -34,7 +34,11 @@ protected mixed call(string func_name, mixed ... args)
   r = c[func_name](@args);
 
   if(objectp(r))
-    throw(.RemoteError(r));
+  {
+  werror("remoteError: %O %O\n", .RemoteError, r);
+  object re = .RemoteError(r);
+    throw(re);
+    }
   else return r[0];
 }
 

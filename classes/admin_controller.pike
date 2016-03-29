@@ -39,7 +39,7 @@ string grant_access(object id, string auth, string index)
 
   CHECKINDEX();
 
-  if(!app->index->exists(index))
+  if(!app?->index?->exists(index))
     throw(Error.Generic("Index " + index + " does not exist.\n"));
 
   return app->security->grant_access(index);

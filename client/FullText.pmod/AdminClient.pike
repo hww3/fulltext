@@ -3,7 +3,7 @@ inherit .BaseClient;
 string type="admin";
 
 //!
-static void create(string|void index_url, string authcode)
+protected void create(string|void index_url, string authcode)
 {
   ::create(index_url, 0, authcode); // we store auth in name field for now.
 }

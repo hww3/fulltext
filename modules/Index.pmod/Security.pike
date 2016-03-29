@@ -4,7 +4,7 @@ inherit .Common : common;
 
 Tools.Mapping.MappingCache authcache = Tools.Mapping.MappingCache(300);
 
-static void create(string loc)
+protected void create(string loc)
 {
   Stdio.Stat f = file_stat(loc);
   if(!f || !f->isdir)
@@ -49,7 +49,7 @@ string mkauthcode(string index)
 {
   string in = Crypto.Random.random_string(25);
   in += index;
-  return String.string2hex(Crypto.MD5()->hash(in + time()));
+  return String.string2hex(Crypto.MD5.hash(in + time()));
 }
 
 string grant_access(string index)
